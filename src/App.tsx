@@ -5,9 +5,26 @@ import Items from './pages/Items'
 import Locations from './pages/Locations'
 import CreateItem from './pages/CreateItem'
 import EditItem from './pages/EditItem'
+import Login from './pages/Login'
 import { ItemProvider } from './hooks/useItems'
+import { AuthProvider, useAuth } from './hooks/useAuth'
 
-function App() {
+function AppContent() {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="loading">
+        <div className="spinner"></div>
+        Loading...
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Login />
+  }
+
   return (
     <ItemProvider>
       <Layout>
@@ -20,6 +37,14 @@ function App() {
         </Routes>
       </Layout>
     </ItemProvider>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 

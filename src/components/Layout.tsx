@@ -1,5 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import Button from './ui/Button'
 
 interface LayoutProps {
   children: ReactNode
@@ -7,6 +9,7 @@ interface LayoutProps {
 
 function Layout({ children }: LayoutProps) {
   const location = useLocation()
+  const { user, logout } = useAuth()
 
   return (
     <div className="app-layout">
@@ -24,10 +27,20 @@ function Layout({ children }: LayoutProps) {
             </div>
           </Link>
           
-          {/* Tenant Badge */}
-          <div className="tenant-badge">
-            <span className="tenant-text">RR Tenant</span>
-            <span className="tenant-status">active</span>
+          {/* User Badge */}
+          <div className="user-badge">
+            <div className="user-info">
+              <span className="user-name">{user?.name || 'User'}</span>
+              <span className="user-email">{user?.email}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="logout-button"
+            >
+              Sign out
+            </Button>
           </div>
         </div>
         
