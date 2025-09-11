@@ -1,35 +1,132 @@
-import { Link } from 'react-router-dom'
-import Button from '../components/ui/Button'
-
 function Home() {
   return (
-    <div className="card">
-      <h1 className="text-lg font-semibold mb-4">Welcome to Rolls Right</h1>
-      <p className="text-gray-600 mb-6">
-        A modern React CRUD application built with TypeScript, Vite, React Router v6, 
-        React hooks for state management, Radix UI components, and the Fetch API.
-      </p>
-      
-      <div className="flex gap-4">
-        <Link to="/items">
-          <Button>View Items</Button>
-        </Link>
-        <Link to="/items/create">
-          <Button variant="outline">Create New Item</Button>
-        </Link>
+    <div className="warehouse-dashboard">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">Warehouse Dashboard</h1>
+        <p className="dashboard-subtitle">Manage your warehouse operations and inventory</p>
       </div>
 
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <h2 className="font-medium mb-2">Tech Stack:</h2>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• React 18+ with TypeScript</li>
-          <li>• Vite for fast development and building</li>
-          <li>• React Router v6 for client-side routing</li>
-          <li>• React hooks for state management</li>
-          <li>• Radix UI for accessible components</li>
-          <li>• Fetch API for HTTP requests</li>
-          <li>• ESLint + Prettier for code quality</li>
-        </ul>
+      {/* Stats Cards */}
+      <div className="stats-grid">
+        <div className="stat-card stat-card-orange">
+          <div className="stat-icon">🛒</div>
+          <div className="stat-content">
+            <div className="stat-number">127</div>
+            <div className="stat-label">Pending Orders</div>
+            <div className="stat-change">+12% from last week</div>
+          </div>
+        </div>
+
+        <div className="stat-card stat-card-green">
+          <div className="stat-icon">📦</div>
+          <div className="stat-content">
+            <div className="stat-number">2,847</div>
+            <div className="stat-label">Items in Stock</div>
+            <div className="stat-change">Across all warehouses</div>
+          </div>
+        </div>
+
+        <div className="stat-card stat-card-blue">
+          <div className="stat-icon">🚚</div>
+          <div className="stat-content">
+            <div className="stat-number">43</div>
+            <div className="stat-label">Active Shipments</div>
+            <div className="stat-change">In transit</div>
+          </div>
+        </div>
+
+        <div className="stat-card stat-card-red">
+          <div className="stat-icon">⚠️</div>
+          <div className="stat-content">
+            <div className="stat-number">8</div>
+            <div className="stat-label">Low Stock Alerts</div>
+            <div className="stat-change">Items need restocking</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="content-grid">
+        {/* Quick Actions */}
+        <div className="card">
+          <h2 className="card-title">Quick Actions</h2>
+          <p className="card-subtitle">Common warehouse management tasks</p>
+          
+          <div className="quick-actions-grid">
+            <div className="quick-action-item">
+              <div className="quick-action-icon quick-action-blue">👥</div>
+              <div className="quick-action-content">
+                <div className="quick-action-title">Manage Customers</div>
+                <div className="quick-action-desc">Add or update customer info</div>
+              </div>
+            </div>
+
+            <div className="quick-action-item">
+              <div className="quick-action-icon quick-action-green">✅</div>
+              <div className="quick-action-content">
+                <div className="quick-action-title">Inventory Check</div>
+                <div className="quick-action-desc">Review stock levels</div>
+              </div>
+            </div>
+
+            <div className="quick-action-item">
+              <div className="quick-action-icon quick-action-purple">🏭</div>
+              <div className="quick-action-content">
+                <div className="quick-action-title">Warehouse Setup</div>
+                <div className="quick-action-desc">Configure locations</div>
+              </div>
+            </div>
+
+            <div className="quick-action-item">
+              <div className="quick-action-icon quick-action-orange">📊</div>
+              <div className="quick-action-content">
+                <div className="quick-action-title">View Reports</div>
+                <div className="quick-action-desc">Analytics & insights</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="card">
+          <h2 className="card-title">Recent Activity</h2>
+          <p className="card-subtitle">Latest warehouse operations</p>
+          
+          <div className="activity-list">
+            <div className="activity-item">
+              <div className="activity-icon activity-green">✅</div>
+              <div className="activity-content">
+                <div className="activity-title">Order #1234 shipped</div>
+                <div className="activity-time">2 hours ago</div>
+              </div>
+            </div>
+
+            <div className="activity-item">
+              <div className="activity-icon activity-blue">🔄</div>
+              <div className="activity-content">
+                <div className="activity-title">Inventory updated for SKU-001</div>
+                <div className="activity-time">4 hours ago</div>
+              </div>
+            </div>
+
+            <div className="activity-item">
+              <div className="activity-icon activity-purple">👤</div>
+              <div className="activity-content">
+                <div className="activity-title">New customer added</div>
+                <div className="activity-time">6 hours ago</div>
+              </div>
+            </div>
+
+            <div className="activity-item">
+              <div className="activity-icon activity-orange">📦</div>
+              <div className="activity-content">
+                <div className="activity-title">Shipment received</div>
+                <div className="activity-time">1 day ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
