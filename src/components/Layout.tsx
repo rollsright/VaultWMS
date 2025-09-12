@@ -160,6 +160,125 @@ function Layout({ children }: LayoutProps) {
               <span className="nav-section-title">SETUP</span>
               <span className="nav-section-icon">🛠️</span>
             </div>
+            <ul className="sidebar-links">
+              <li>
+                <Link 
+                  to="/setup/users" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/users') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">👥</span>
+                  <span>Users</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/warehouses" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/warehouses') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">🏢</span>
+                  <span>Warehouses</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/zones" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/zones') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">📊</span>
+                  <span>Zones</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/locations" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/locations') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">📍</span>
+                  <span>Locations</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/customers" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/customers') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">👥</span>
+                  <span>Customers</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/suppliers" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/suppliers') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">🚚</span>
+                  <span>Suppliers</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/uoms" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/uoms') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">⚖️</span>
+                  <span>UOMs</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/categories" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/categories') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">🏷️</span>
+                  <span>Categories</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/items" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/items') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">📦</span>
+                  <span>Items</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/carriers" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/carriers') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">🚛</span>
+                  <span>Carriers</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/contacts" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/contacts') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">📞</span>
+                  <span>Contacts</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/doors" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/doors') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">🚪</span>
+                  <span>Doors</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/setup/document-types" 
+                  className={`sidebar-link ${location.pathname.startsWith('/setup/document-types') ? 'active' : ''}`}
+                >
+                  <span className="nav-icon">📄</span>
+                  <span>Document Types</span>
+                </Link>
+              </li>
+            </ul>
           </div>
         </nav>
       </aside>
