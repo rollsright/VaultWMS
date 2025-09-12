@@ -10,6 +10,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<boolean>
+  loginWithOutlook: () => Promise<boolean>
   logout: () => void
   isLoading: boolean
 }
@@ -58,6 +59,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false
   }
 
+  const loginWithOutlook = async (): Promise<boolean> => {
+    setIsLoading(true)
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // Simulate Outlook OAuth flow - in a real app, this would redirect to Microsoft OAuth
+    // For demo purposes, we'll create a mock Outlook user
+    try {
+      const outlookUser: User = {
+        id: 'outlook_' + Date.now(),
+        email: 'user@outlook.com',
+        name: 'Outlook User'
+      }
+      
+      setUser(outlookUser)
+      localStorage.setItem('auth_user', JSON.stringify(outlookUser))
+      setIsLoading(false)
+      return true
+    } catch (error) {
+      console.error('Outlook login failed:', error)
+      setIsLoading(false)
+      return false
+    }
+  }
+
   const logout = () => {
     setUser(null)
     localStorage.removeItem('auth_user')
@@ -67,6 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isAuthenticated: !!user,
     login,
+    loginWithOutlook,
     logout,
     isLoading
   }

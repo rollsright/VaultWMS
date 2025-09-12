@@ -6,7 +6,7 @@ function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const { login, isLoading } = useAuth()
+  const { login, loginWithOutlook, isLoading } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,6 +30,14 @@ function Login() {
     const success = await login(email, password)
     if (!success) {
       setError('Invalid email or password')
+    }
+  }
+
+  const handleOutlookSignIn = async () => {
+    setError('')
+    const success = await loginWithOutlook()
+    if (!success) {
+      setError('Outlook sign-in failed. Please try again.')
     }
   }
 
@@ -106,6 +114,29 @@ function Login() {
               )}
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="login-divider">
+            <div className="divider-line"></div>
+            <div className="divider-text">or</div>
+            <div className="divider-line"></div>
+          </div>
+
+          {/* Outlook Sign In */}
+          <Button
+            type="button"
+            variant="outline"
+            className="outlook-button"
+            disabled={isLoading}
+            size="lg"
+            onClick={handleOutlookSignIn}
+          >
+            <svg className="outlook-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M7 9a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="#0078d4"/>
+              <path d="M20.5 3h-17A1.5 1.5 0 0 0 2 4.5v15A1.5 1.5 0 0 0 3.5 21h17a1.5 1.5 0 0 0 1.5-1.5v-15A1.5 1.5 0 0 0 20.5 3zm-.5 15H4V6h16v12z" fill="#0078d4"/>
+            </svg>
+            Sign in with Outlook
+          </Button>
 
           {/* Demo Credentials */}
           <div className="demo-credentials">
