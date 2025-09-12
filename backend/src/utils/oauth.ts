@@ -5,21 +5,40 @@ export class OAuthService {
    * Generate OAuth URL for the specified provider
    */
   static async getOAuthUrl(provider: 'google' | 'azure', redirectTo?: string): Promise<string> {
+    // Configure scopes and query params based on provider
+    let options: any = {
+      redirectTo: redirectTo || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback`,
+    };
+
+    if (provider === 'azure') {
+      // For Microsoft/Azure, use Microsoft Graph API scopes
+      // Include email scope explicitly to ensure email claim is requested
+      options.scopes = 'openid profile email User.Read';
+      options.queryParams = {
+        tenant: 'common', // Allow both personal and work/school accounts
+        prompt: 'consent',
+      };
+    } else if (provider === 'google') {
+      options.scopes = 'openid profile email';
+      options.queryParams = {
+        access_type: 'offline',
+        prompt: 'consent',
+      };
+    }
+
+    console.log('OAuth URL generation:', { provider, options });
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        redirectTo: redirectTo || `${process.env.FRONTEND_URL || 'http://localhost:3001'}/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
+      options,
     });
 
     if (error) {
+      console.error('OAuth URL generation error:', error);
       throw new Error(`Failed to generate OAuth URL: ${error.message}`);
     }
 
+    console.log('Generated OAuth URL:', data.url);
     return data.url;
   }
 

@@ -13,10 +13,18 @@ declare global {
 
 export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('Auth middleware: Request received', { 
+      method: req.method, 
+      url: req.url, 
+      hasAuthHeader: !!req.headers.authorization,
+      origin: req.headers.origin 
+    });
+    
     // Get the authorization header
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('Auth middleware: No valid auth header');
       return res.status(401).json({
         success: false,
         error: 'No token provided'
@@ -30,6 +38,7 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
+      console.log('Auth middleware: Invalid token or user not found', { error: error?.message, hasUser: !!user });
       return res.status(401).json({
         success: false,
         error: 'Invalid or expired token'
@@ -39,6 +48,7 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     // Add user to request object
     req.user = user;
     next();
+    return;
 
   } catch (error) {
     console.error('Authentication error:', error);
@@ -46,6 +56,7 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       success: false,
       error: 'Authentication failed'
     } as ApiResponse);
+    return;
   }
 };
 

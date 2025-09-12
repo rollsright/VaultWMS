@@ -101,7 +101,7 @@ router.post('/login', async (req: Request, res: Response) => {
         error: error.message
       } as ApiResponse);
     }
-
+    console.log('Login successful', data.user, data.session);
     res.json({
       success: true,
       data: {
@@ -153,7 +153,21 @@ router.post('/logout', async (req: Request, res: Response) => {
 // Get current user route
 router.get('/me', async (req: Request, res: Response) => {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    // Get the authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Auth session missing!'
+      } as ApiResponse);
+    }
+
+    // Extract the token
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error) {
       return res.status(401).json({
@@ -304,7 +318,21 @@ router.post('/refresh', async (req: Request, res: Response) => {
 // Get user profile route
 router.get('/profile', async (req: Request, res: Response) => {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    // Get the authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Auth session missing!'
+      } as ApiResponse);
+    }
+
+    // Extract the token
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
       return res.status(401).json({
@@ -336,6 +364,30 @@ router.get('/profile', async (req: Request, res: Response) => {
       success: false,
       error: 'Internal server error'
     } as ApiResponse);
+    return;
+  }
+});
+
+// Test endpoint to manually initiate OAuth (for debugging)
+router.get('/test-oauth/:provider', async (req: Request, res: Response) => {
+  try {
+    const { provider } = req.params;
+    
+    if (!['google', 'azure'].includes(provider)) {
+      return res.status(400).send('Invalid provider. Use "azure" or "google"');
+    }
+
+    const oauthUrl = await OAuthService.getOAuthUrl(
+      provider as 'google' | 'azure',
+      `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback`
+    );
+
+    // Redirect user to OAuth URL
+    res.redirect(oauthUrl);
+    return;
+  } catch (error) {
+    console.error('Test OAuth error:', error);
+    res.status(500).send(`OAuth test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return;
   }
 });

@@ -34,21 +34,46 @@ export function ItemProvider({ children }: ItemProviderProps) {
     setLoading(true)
     setError(null)
     try {
-      // Replace with your actual API endpoint
-      const response = await fetch('/api/items')
+      // Replace with your actual API endpoint with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      try {
+        console.log('Items fetch: Making request to', `${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items`)
+        const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId)
+        console.log('Items fetch: Response received', { status: response.status, statusText: response.statusText, ok: response.ok })
       
-      if (!response.ok) {
-        throw new Error(`Failed to fetch items: ${response.statusText}`)
+        if (!response.ok) {
+          throw new Error(`Failed to fetch items: ${response.status} ${response.statusText}`)
+        }
+        
+        const data = await response.json()
+        if (data.success && data.data) {
+          setItems(data.data)
+        } else {
+          throw new Error(data.error || 'Failed to fetch items')
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
+        throw fetchError
       }
-      
-      const data = await response.json()
-      setItems(data)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
       setError(errorMessage)
       
       // For demo purposes, set some mock data when API is not available
       console.warn('API not available, using mock data:', errorMessage)
+      
+      // Additional logging for debugging
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Request timed out after 5 seconds')
+      }
       setItems([
         {
           id: '1',
@@ -75,7 +100,7 @@ export function ItemProvider({ children }: ItemProviderProps) {
     setError(null)
     
     try {
-      const response = await fetch('/api/items', {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,9 +112,13 @@ export function ItemProvider({ children }: ItemProviderProps) {
         throw new Error(`Failed to create item: ${response.statusText}`)
       }
       
-      const newItem = await response.json()
-      setItems(prev => [...prev, newItem])
-      return newItem
+      const data = await response.json()
+      if (data.success && data.data) {
+        setItems(prev => [...prev, data.data])
+        return data.data
+      } else {
+        throw new Error(data.error || 'Failed to create item')
+      }
     } catch (err) {
       // For demo purposes, create a mock item when API is not available
       const now = new Date().toISOString()
@@ -111,7 +140,7 @@ export function ItemProvider({ children }: ItemProviderProps) {
     setError(null)
     
     try {
-      const response = await fetch(`/api/items/${id}`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -123,9 +152,13 @@ export function ItemProvider({ children }: ItemProviderProps) {
         throw new Error(`Failed to update item: ${response.statusText}`)
       }
       
-      const updatedItem = await response.json()
-      setItems(prev => prev.map(item => item.id === id ? updatedItem : item))
-      return updatedItem
+      const data = await response.json()
+      if (data.success && data.data) {
+        setItems(prev => prev.map(item => item.id === id ? data.data : item))
+        return data.data
+      } else {
+        throw new Error(data.error || 'Failed to update item')
+      }
     } catch (err) {
       // For demo purposes, update the mock item when API is not available
       const updatedItem = items.find(item => item.id === id)
@@ -151,15 +184,23 @@ export function ItemProvider({ children }: ItemProviderProps) {
     setError(null)
     
     try {
-      const response = await fetch(`/api/items/${id}`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
       
       if (!response.ok) {
         throw new Error(`Failed to delete item: ${response.statusText}`)
       }
       
-      setItems(prev => prev.filter(item => item.id !== id))
+      const data = await response.json()
+      if (data.success) {
+        setItems(prev => prev.filter(item => item.id !== id))
+      } else {
+        throw new Error(data.error || 'Failed to delete item')
+      }
     } catch (err) {
       // For demo purposes, delete the mock item when API is not available
       setItems(prev => prev.filter(item => item.id !== id))
@@ -173,6 +214,8 @@ export function ItemProvider({ children }: ItemProviderProps) {
   }
 
   useEffect(() => {
+    // Fetch items on component mount
+    console.log('ItemProvider: Fetching items')
     fetchItems()
   }, [])
 

@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../contexts/AuthContext'
 import Button from './ui/Button'
 
 interface LayoutProps {
@@ -9,8 +9,16 @@ interface LayoutProps {
 
 function Layout({ children }: LayoutProps) {
   const location = useLocation()
-  const { user, logout } = useAuth()
   const [isSetupCollapsed, setIsSetupCollapsed] = useState(false)
+  const { user, signOut } = useAuth()
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 
   return (
     <div className="app-layout">
@@ -31,13 +39,15 @@ function Layout({ children }: LayoutProps) {
           {/* User Badge */}
           <div className="user-badge">
             <div className="user-info">
-              <span className="user-name">{user?.name || 'User'}</span>
+              <span className="user-name">
+                {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
+              </span>
               <span className="user-email">{user?.email}</span>
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={logout}
+              onClick={handleSignOut}
               className="logout-button"
             >
               Sign out
