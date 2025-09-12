@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import Button from './ui/Button'
@@ -10,6 +10,7 @@ interface LayoutProps {
 function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const { user, logout } = useAuth()
+  const [isSetupCollapsed, setIsSetupCollapsed] = useState(false)
 
   return (
     <div className="app-layout">
@@ -156,11 +157,33 @@ function Layout({ children }: LayoutProps) {
 
           {/* Setup Section */}
           <div className="nav-section">
-            <div className="nav-section-header">
+            <div 
+              className="nav-section-header collapsible" 
+              onClick={() => setIsSetupCollapsed(!isSetupCollapsed)}
+              style={{ cursor: 'pointer' }}
+            >
               <span className="nav-section-title">SETUP</span>
-              <span className="nav-section-icon">🛠️</span>
+              <div className="nav-section-controls">
+                <span className="nav-section-icon">🛠️</span>
+                <svg 
+                  className={`collapse-icon ${isSetupCollapsed ? 'collapsed' : 'expanded'}`}
+                  width="12" 
+                  height="12" 
+                  viewBox="0 0 12 12" 
+                  fill="none"
+                >
+                  <path 
+                    d="M3 4.5L6 7.5L9 4.5" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
-            <ul className="sidebar-links">
+            {!isSetupCollapsed && (
+              <ul className="sidebar-links">
               <li>
                 <Link 
                   to="/setup/users" 
@@ -278,7 +301,8 @@ function Layout({ children }: LayoutProps) {
                   <span>Document Types</span>
                 </Link>
               </li>
-            </ul>
+              </ul>
+            )}
           </div>
         </nav>
       </aside>
