@@ -6,6 +6,7 @@ import Locations from './pages/Locations'
 import CreateItem from './pages/CreateItem'
 import EditItem from './pages/EditItem'
 import Login from './pages/Login'
+import AuthCallback from './pages/AuthCallback'
 import { ItemProvider } from './hooks/useItems'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 
@@ -34,6 +35,11 @@ function AppContent() {
         Loading...
       </div>
     )
+  }
+
+  // Handle auth callback route separately
+  if (window.location.pathname === '/auth/callback') {
+    return <AuthCallback />
   }
 
   if (!isAuthenticated) {
