@@ -1,0 +1,343 @@
+import { Router, Request, Response } from 'express';
+import { supabase } from '../config/supabase';
+import { 
+  LoginRequest, 
+  SignupRequest, 
+  OAuthRequest, 
+  OAuthCallbackRequest,
+  RefreshTokenRequest,
+  ApiResponse, 
+  AuthResponse 
+} from '../types';
+import { OAuthService } from '../utils/oauth';
+
+const router = Router();
+
+// Sign up route
+router.post('/signup', async (req: Request, res: Response) => {
+  try {
+    const { email, password }: SignupRequest = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required'
+      } as ApiResponse);
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      } as ApiResponse);
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters long'
+      } as ApiResponse);
+    }
+
+    // Create user with Supabase
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        error: error.message
+      } as ApiResponse);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: {
+        user: data.user,
+        session: data.session
+      },
+      message: 'User created successfully. Please check your email for verification.'
+    } as ApiResponse<AuthResponse>);
+    return;
+
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    } as ApiResponse);
+    return;
+  }
+});
+
+// Login route
+router.post('/login', async (req: Request, res: Response) => {
+  try {
+    const { email, password }: LoginRequest = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required'
+      } as ApiResponse);
+    }
+
+    // Authenticate with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return res.status(401).json({
+        success: false,
+        error: error.message
+      } as ApiResponse);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        user: data.user,
+        session: data.session
+      },
+      message: 'Login successful'
+    } as ApiResponse<AuthResponse>);
+    return;
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    } as ApiResponse);
+    return;
+  }
+});
+
+// Logout route
+router.post('/logout', async (req: Request, res: Response) => {
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        error: error.message
+      } as ApiResponse);
+    }
+
+    res.json({
+      success: true,
+      message: 'Logout successful'
+    } as ApiResponse);
+    return;
+
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    } as ApiResponse);
+    return;
+  }
+});
+
+// Get current user route
+router.get('/me', async (req: Request, res: Response) => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error) {
+      return res.status(401).json({
+        success: false,
+        error: error.message
+      } as ApiResponse);
+    }
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'No authenticated user'
+      } as ApiResponse);
+    }
+
+    res.json({
+      success: true,
+      data: { user },
+      message: 'User retrieved successfully'
+    } as ApiResponse);
+    return;
+
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    } as ApiResponse);
+    return;
+  }
+});
+
+// OAuth routes
+// Initiate OAuth flow
+router.post('/oauth/:provider', async (req: Request, res: Response) => {
+  try {
+    const { provider } = req.params;
+    const { redirect_to } = req.body;
+
+    if (!['google', 'azure'].includes(provider)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid OAuth provider. Supported providers: google, azure'
+      } as ApiResponse);
+      return;
+    }
+
+    const oauthUrl = await OAuthService.getOAuthUrl(
+      provider as 'google' | 'azure',
+      redirect_to
+    );
+
+    res.json({
+      success: true,
+      data: { url: oauthUrl },
+      message: 'OAuth URL generated successfully'
+    } as ApiResponse);
+    return;
+
+  } catch (error) {
+    console.error('OAuth initiation error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'OAuth initiation failed'
+    } as ApiResponse);
+  }
+});
+
+// OAuth callback handler
+router.post('/oauth/callback', async (req: Request, res: Response) => {
+  try {
+    const { code, provider } = req.body;
+
+    if (!code || !provider) {
+      res.status(400).json({
+        success: false,
+        error: 'Code and provider are required'
+      } as ApiResponse);
+      return;
+    }
+
+    if (!['google', 'azure'].includes(provider)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid OAuth provider'
+      } as ApiResponse);
+      return;
+    }
+
+    const authData = await OAuthService.handleOAuthCallback(
+      code,
+      provider as 'google' | 'azure'
+    );
+
+    res.json({
+      success: true,
+      data: {
+        user: authData.user,
+        session: authData.session
+      },
+      message: 'OAuth authentication successful'
+    } as ApiResponse<AuthResponse>);
+    return;
+
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'OAuth callback failed'
+    } as ApiResponse);
+  }
+});
+
+// Refresh token route
+router.post('/refresh', async (req: Request, res: Response) => {
+  try {
+    const { refresh_token }: RefreshTokenRequest = req.body;
+
+    if (!refresh_token) {
+      res.status(400).json({
+        success: false,
+        error: 'Refresh token is required'
+      } as ApiResponse);
+      return;
+    }
+
+    const authData = await OAuthService.refreshToken(refresh_token);
+
+    res.json({
+      success: true,
+      data: {
+        user: authData.user,
+        session: authData.session
+      },
+      message: 'Token refreshed successfully'
+    } as ApiResponse<AuthResponse>);
+    return;
+
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Token refresh failed'
+    } as ApiResponse);
+  }
+});
+
+// Get user profile route
+router.get('/profile', async (req: Request, res: Response) => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return res.status(401).json({
+        success: false,
+        error: 'No authenticated user'
+      } as ApiResponse);
+    }
+
+    const profile = {
+      id: user.id,
+      email: user.email,
+      full_name: user.user_metadata?.full_name,
+      avatar_url: user.user_metadata?.avatar_url,
+      provider: user.app_metadata?.provider || 'email',
+      created_at: user.created_at,
+      updated_at: user.updated_at
+    };
+
+    res.json({
+      success: true,
+      data: profile,
+      message: 'Profile retrieved successfully'
+    } as ApiResponse);
+    return;
+
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    } as ApiResponse);
+    return;
+  }
+});
+
+export default router;
