@@ -16,8 +16,33 @@ const PORT = process.env.PORT || 3002;
 app.use(helmet()); // Security headers
 
 // Configure CORS properly for authenticated requests
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  'https://*.vercel.app', // Allow all Vercel deployments
+  'https://vaultwms.vercel.app', // Common Vercel pattern
+  'https://rolls-right.vercel.app', // Another common pattern
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list or matches Vercel pattern
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (allowedOrigin.includes('*')) {
+        return origin.includes(allowedOrigin.replace('*', ''));
+      }
+      return origin === allowedOrigin;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('🚫 CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -25,7 +50,8 @@ app.use(cors({
 }));
 
 // Log CORS configuration for debugging
-console.log('🔒 CORS configured for origin:', process.env.FRONTEND_URL || 'http://localhost:3000');
+console.log('🔒 CORS configured for origins:', allowedOrigins);
+console.log('🔒 FRONTEND_URL env var:', process.env.FRONTEND_URL);
 
 app.use(morgan('combined')); // Logging
 app.use(express.json()); // Parse JSON bodies
