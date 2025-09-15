@@ -10,7 +10,7 @@ import '../../styles/components.css'
 function Contacts() {
   const { customers } = useCustomers()
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('')
-  const { contacts, summary, loading, error, createContact, updateContact, deleteContact } = useContacts(selectedCustomerId)
+  const { contacts, summary, loading, error, createContact, updateContact } = useContacts(selectedCustomerId)
   const [searchQuery, setSearchQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingContact, setEditingContact] = useState<typeof contacts[0] | undefined>()
@@ -37,15 +37,6 @@ function Contacts() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteContact = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this contact?')) {
-      try {
-        await deleteContact(id)
-      } catch (error) {
-        console.error('Failed to delete contact:', error)
-      }
-    }
-  }
 
   const handleModalSubmit = async (data: CreateContactRequest | UpdateContactRequest) => {
     if (editingContact) {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useUsers } from '../../hooks/useUsers'
-import { CreateUserRequest, UpdateUserRequest, UserType, ROLE_COLORS } from '../../types/user'
+import { CreateUserRequest, UpdateUserRequest, ROLE_COLORS } from '../../types/user'
 import Button from '../../components/ui/Button'
 import UserModal from '../../components/UserModal'
 import '../../styles/customer.css'
@@ -8,7 +8,7 @@ import '../../styles/components.css'
 
 function Users() {
   const [activeTab, setActiveTab] = useState<'system' | 'customer'>('system')
-  const { users, summary, loading, error, createUser, updateUser, deleteUser } = useUsers(activeTab)
+  const { users, summary, loading, error, createUser, updateUser } = useUsers(activeTab)
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('All Roles')
   const [userFilter, setUserFilter] = useState('All Users')
@@ -39,15 +39,6 @@ function Users() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteUser = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await deleteUser(id)
-      } catch (error) {
-        console.error('Failed to delete user:', error)
-      }
-    }
-  }
 
   const handleModalSubmit = async (data: CreateUserRequest | UpdateUserRequest) => {
     if (editingUser) {

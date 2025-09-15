@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, CreateUserRequest, UpdateUserRequest, UserRole, UserType, USER_ROLES } from '../types/user'
+import { User, CreateUserRequest, UpdateUserRequest, UserRole, UserType } from '../types/user'
 import { useCustomers } from '../hooks/useCustomers'
 import Button from './ui/Button'
 
@@ -374,7 +374,7 @@ function UserModal({
         </form>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .modal-overlay {
           position: fixed;
           top: 0;

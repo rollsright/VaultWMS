@@ -12,13 +12,6 @@ function Carriers() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCarrier, setEditingCarrier] = useState<typeof carriers[0] | undefined>()
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'numeric',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
 
   const handleAddCarrier = () => {
     setEditingCarrier(undefined)

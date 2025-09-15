@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Door, DoorSummary, CreateDoorRequest, UpdateDoorRequest, DoorType } from '../types/door';
+import { Door, DoorSummary, CreateDoorRequest, UpdateDoorRequest } from '../types/door';
 
 // Mock data for development - will be replaced with API calls
 const mockDoors: Door[] = [
