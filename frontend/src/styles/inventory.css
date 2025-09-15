@@ -1,0 +1,179 @@
+/* Inventory Management Styles */
+.inventory-management {
+  padding: 0;
+}
+
+/* Inventory Header */
+.inventory-header {
+  margin-bottom: 2rem;
+}
+
+.inventory-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.inventory-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+/* Inventory Filters */
+.inventory-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.action-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Inventory Card */
+.inventory-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.inventory-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.inventory-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.auto-refresh {
+  font-size: 0.875rem;
+  color: #6b7280;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+/* Inventory Table */
+.inventory-table-container {
+  position: relative;
+  min-height: 400px;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.inventory-table th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.inventory-table th:first-child {
+  padding-left: 1.5rem;
+}
+
+.inventory-table th:last-child {
+  padding-right: 1.5rem;
+}
+
+.inventory-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.inventory-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* Empty State */
+.inventory-empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+/* Responsive Design for Inventory */
+@media (max-width: 1024px) {
+  .inventory-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .filter-controls {
+    justify-content: space-between;
+  }
+  
+  .action-controls {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-controls {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .search-container {
+    max-width: none;
+  }
+  
+  .dropdown-button {
+    min-width: 100%;
+  }
+  
+  .inventory-title {
+    font-size: 1.5rem;
+  }
+  
+  .inventory-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .inventory-table-container {
+    overflow-x: auto;
+  }
+  
+  .inventory-table {
+    min-width: 800px;
+  }
+}

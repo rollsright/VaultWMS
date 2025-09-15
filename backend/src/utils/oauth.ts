@@ -7,7 +7,7 @@ export class OAuthService {
   static async getOAuthUrl(provider: 'google' | 'azure', redirectTo?: string): Promise<string> {
     // Configure scopes and query params based on provider
     let options: any = {
-      redirectTo: redirectTo || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback`,
+      redirectTo: redirectTo || `${process.env.FRONTEND_URL || 'https://vault-wms-frontend.vercel.app'}/auth/callback`,
     };
 
     if (provider === 'azure') {

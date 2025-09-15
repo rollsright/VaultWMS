@@ -101,7 +101,6 @@ sequelize.authenticate()
   })
   .catch((err) => {
     console.error('❌ Unable to connect to the database:', err);
-    console.log('💡 Tip: Make sure you\'re using the Supabase CONNECTION POOLER URL, not the direct database URL');
   });
 
 export default sequelize;

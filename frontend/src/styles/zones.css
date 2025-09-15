@@ -1,0 +1,386 @@
+/* Zones Management Styles */
+.zones-management {
+  padding: 0;
+}
+
+/* Zones Header */
+.zones-header {
+  margin-bottom: 2rem;
+}
+
+.zones-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.zones-title-section {
+  flex: 1;
+}
+
+.zones-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.zones-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.zones-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.export-button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.add-zone-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.add-zone-button:hover {
+  background: #1d4ed8;
+}
+
+/* Zones Stats Grid */
+.zones-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.zones-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.zones-stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.zones-stat-card .stat-content {
+  flex: 1;
+}
+
+.zones-stat-card .stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+}
+
+.zones-stat-card .stat-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.125rem;
+}
+
+.zones-stat-card .stat-description {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.zones-stat-card .stat-icon {
+  font-size: 1.5rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  height: 3rem;
+}
+
+.zones-icon {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.active-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.storage-icon {
+  background: #e9d5ff;
+  color: #9333ea;
+}
+
+.receiving-icon {
+  background: #fed7aa;
+  color: #ea580c;
+}
+
+/* Zones Section */
+.zones-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  overflow: hidden;
+}
+
+.zones-section-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.zones-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.zones-section-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Zones Filters */
+.zones-filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.zones-filters .search-container {
+  position: relative;
+  flex: 1;
+  max-width: 320px;
+}
+
+.zones-filters .search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.zones-filters .search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+  transition: all 0.2s;
+}
+
+.zones-filters .search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.zones-filters .search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Zones Table */
+.zones-table-container {
+  position: relative;
+  min-height: 400px;
+}
+
+.zones-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.zones-table th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.zones-table th:first-child {
+  padding-left: 1.5rem;
+}
+
+.zones-table th:last-child {
+  padding-right: 1.5rem;
+}
+
+.zones-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.zones-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.zone-name {
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.zone-code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.zone-capacity {
+  color: #6b7280;
+}
+
+.zone-description {
+  color: #6b7280;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Zones Empty State */
+.zones-empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.zones-empty-state .empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.zones-empty-state .empty-state-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.zones-empty-state .empty-state-description {
+  font-size: 1rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Responsive Design for Zones Management */
+@media (max-width: 1024px) {
+  .zones-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  
+  .zones-header-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .zones-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .zones-header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .export-button,
+  .add-zone-button {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .zones-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .zones-title {
+    font-size: 1.5rem;
+  }
+  
+  .zones-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .zones-filters .search-container {
+    max-width: none;
+  }
+  
+  .dropdown-select {
+    min-width: 100%;
+  }
+  
+  .zones-table-container {
+    overflow-x: auto;
+  }
+  
+  .zones-table {
+    min-width: 800px;
+  }
+}

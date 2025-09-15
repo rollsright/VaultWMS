@@ -13,17 +13,49 @@ import './config/sequelize'; // Initialize database connection
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// Middleware
-app.use(helmet()); // Security headers
-
 // Configure CORS properly for authenticated requests
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:3000',
+  'https://vault-wms-frontend.vercel.app',
+  'https://vaultwms.vercel.app',
+  'https://rolls-right.vercel.app',
+  // Add more specific Vercel domains as needed
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    const isAllowed = allowedOrigins.includes(origin);
+    
+    // Also allow any Vercel app domain (pattern matching)
+    const isVercelApp = origin && origin.endsWith('.vercel.app');
+    
+    if (isAllowed || isVercelApp) {
+      console.log('✅ CORS allowed origin:', origin);
+      callback(null, true);
+    } else {
+      console.log('🚫 CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   optionsSuccessStatus: 200
 }));
+
+// Middleware
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false,
+})); // Security headers (with CORS-friendly settings)
+
+// Log CORS configuration for debugging
+console.log('🔒 CORS configured for origins:', allowedOrigins);
+console.log('🔒 FRONTEND_URL env var:', process.env.FRONTEND_URL);
 
 app.use(morgan('combined')); // Logging
 app.use(express.json()); // Parse JSON bodies
@@ -35,6 +67,20 @@ app.get('/', (req, res) => {
     message: 'WMS Backend API',
     version: '1.0.0',
     status: 'running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// CORS test endpoint
+app.post('/test-cors', (req, res) => {
+  console.log('🧪 CORS test endpoint hit');
+  console.log('🧪 Origin:', req.headers.origin);
+  console.log('🧪 Headers:', req.headers);
+  
+  res.json({
+    success: true,
+    message: 'CORS test successful',
+    origin: req.headers.origin,
     timestamp: new Date().toISOString()
   });
 });
