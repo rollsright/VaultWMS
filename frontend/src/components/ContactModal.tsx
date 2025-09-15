@@ -304,7 +304,7 @@ function ContactModal({
         </form>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .modal-overlay {
           position: fixed;
           top: 0;

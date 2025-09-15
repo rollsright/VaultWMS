@@ -10,7 +10,7 @@ import '../../styles/components.css'
 function Doors() {
   const { warehouses } = useWarehouses()
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>('')
-  const { doors, summary, loading, error, createDoor, updateDoor, deleteDoor } = useDoors(selectedWarehouseId)
+  const { doors, summary, loading, error, createDoor, updateDoor } = useDoors(selectedWarehouseId)
   const [searchQuery, setSearchQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingDoor, setEditingDoor] = useState<typeof doors[0] | undefined>()
@@ -33,15 +33,6 @@ function Doors() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteDoor = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this door?')) {
-      try {
-        await deleteDoor(id)
-      } catch (error) {
-        console.error('Failed to delete door:', error)
-      }
-    }
-  }
 
   const handleModalSubmit = async (data: CreateDoorRequest | UpdateDoorRequest) => {
     if (editingDoor) {
