@@ -15,9 +15,10 @@ const PORT = process.env.PORT || 3002;
 // Configure CORS properly for authenticated requests
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:3000',
-  'https://*.vercel.app', // Allow all Vercel deployments
-  'https://vaultwms.vercel.app', // Common Vercel pattern
-  'https://rolls-right.vercel.app', // Another common pattern
+  'https://vault-wms-frontend.vercel.app',
+  'https://vaultwms.vercel.app',
+  'https://rolls-right.vercel.app',
+  // Add more specific Vercel domains as needed
 ];
 
 app.use(cors({
@@ -25,15 +26,13 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Check if origin is in allowed list or matches Vercel pattern
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (allowedOrigin.includes('*')) {
-        return origin.includes(allowedOrigin.replace('*', ''));
-      }
-      return origin === allowedOrigin;
-    });
+    // Check if origin is in allowed list
+    const isAllowed = allowedOrigins.includes(origin);
     
-    if (isAllowed) {
+    // Also allow any Vercel app domain (pattern matching)
+    const isVercelApp = origin && origin.endsWith('.vercel.app');
+    
+    if (isAllowed || isVercelApp) {
       console.log('✅ CORS allowed origin:', origin);
       callback(null, true);
     } else {
