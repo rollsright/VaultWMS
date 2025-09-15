@@ -12,9 +12,6 @@ import itemsRoutes from './routes/items';
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// Middleware
-app.use(helmet()); // Security headers
-
 // Configure CORS properly for authenticated requests
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -37,6 +34,7 @@ app.use(cors({
     });
     
     if (isAllowed) {
+      console.log('✅ CORS allowed origin:', origin);
       callback(null, true);
     } else {
       console.log('🚫 CORS blocked origin:', origin);
@@ -48,6 +46,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   optionsSuccessStatus: 200
 }));
+
+// Middleware
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false,
+})); // Security headers (with CORS-friendly settings)
 
 // Log CORS configuration for debugging
 console.log('🔒 CORS configured for origins:', allowedOrigins);
@@ -63,6 +67,20 @@ app.get('/', (req, res) => {
     message: 'WMS Backend API',
     version: '1.0.0',
     status: 'running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// CORS test endpoint
+app.post('/test-cors', (req, res) => {
+  console.log('🧪 CORS test endpoint hit');
+  console.log('🧪 Origin:', req.headers.origin);
+  console.log('🧪 Headers:', req.headers);
+  
+  res.json({
+    success: true,
+    message: 'CORS test successful',
+    origin: req.headers.origin,
     timestamp: new Date().toISOString()
   });
 });
