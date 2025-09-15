@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import authRoutes from './routes/auth';
 import itemsRoutes from './routes/items';
+import './config/sequelize'; // Initialize database connection
 
 const app = express();
 const PORT = process.env.PORT || 3002;
