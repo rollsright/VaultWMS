@@ -1,0 +1,249 @@
+/* Warehouse Management Styles */
+.warehouse-management {
+  padding: 0;
+}
+
+/* Warehouse Header */
+.warehouse-header {
+  margin-bottom: 2rem;
+}
+
+.warehouse-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.warehouse-title-section {
+  flex: 1;
+}
+
+.warehouse-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.warehouse-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.add-warehouse-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.add-warehouse-button:hover {
+  background: #1d4ed8;
+}
+
+.button-icon {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Warehouse Stats Grid */
+.warehouse-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.warehouse-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.warehouse-stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.warehouse-stat-card .stat-content {
+  flex: 1;
+}
+
+.warehouse-stat-card .stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+}
+
+.warehouse-stat-card .stat-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.warehouse-stat-card .stat-icon {
+  font-size: 1.5rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  height: 3rem;
+}
+
+.warehouse-icon {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.chart-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.location-icon {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+/* Warehouses Section */
+.warehouses-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  overflow: hidden;
+}
+
+.warehouses-section-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.warehouses-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.warehouses-section-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Warehouses Table */
+.warehouses-table-container {
+  overflow-x: auto;
+}
+
+.warehouses-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.warehouses-table th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.warehouses-table th:first-child {
+  padding-left: 1.5rem;
+}
+
+.warehouses-table th:last-child {
+  padding-right: 1.5rem;
+}
+
+.warehouses-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.warehouses-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.warehouse-name {
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.warehouse-code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.warehouse-location {
+  color: #6b7280;
+}
+
+/* Warehouse Actions */
+.warehouse-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Responsive Design for Warehouse Management */
+@media (max-width: 1024px) {
+  .warehouse-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .warehouse-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .add-warehouse-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .warehouse-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .warehouse-title {
+    font-size: 1.5rem;
+  }
+  
+  .warehouses-table-container {
+    overflow-x: auto;
+  }
+  
+  .warehouses-table {
+    min-width: 600px;
+  }
+}

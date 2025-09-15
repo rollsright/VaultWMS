@@ -1,0 +1,417 @@
+/* Locations Management Styles */
+.locations-management {
+  padding: 0;
+}
+
+/* Top Header Bar */
+.top-header-bar {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+}
+
+.top-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.top-header-filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.top-header-search {
+  flex: 1;
+  max-width: 400px;
+  margin: 0 2rem;
+}
+
+.top-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.top-header-bar .search-container {
+  position: relative;
+  width: 100%;
+}
+
+.top-header-bar .search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.top-header-bar .search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+  transition: all 0.2s;
+}
+
+.top-header-bar .search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.top-header-bar .search-input::placeholder {
+  color: #9ca3af;
+}
+
+.top-header-bar .filter-dropdown {
+  position: relative;
+}
+
+.top-header-bar .dropdown-select {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 140px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.top-header-bar .dropdown-select:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.top-header-bar .dropdown-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.top-header-bar .export-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.top-header-bar .export-button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Locations Header */
+.locations-header {
+  margin-bottom: 2rem;
+}
+
+.locations-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.locations-title-section {
+  flex: 1;
+}
+
+.locations-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.locations-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.add-location-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.add-location-button:hover {
+  background: #1d4ed8;
+}
+
+/* Locations Filters */
+.locations-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+/* Locations Card */
+.locations-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.locations-card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.locations-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Locations Section */
+.locations-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
+  overflow: hidden;
+}
+
+.locations-section-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.locations-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Locations Table */
+.locations-table-container {
+  position: relative;
+  min-height: 400px;
+}
+
+.locations-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.locations-table th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.locations-table th:first-child {
+  padding-left: 1.5rem;
+}
+
+.locations-table th:last-child {
+  padding-right: 1.5rem;
+}
+
+.locations-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.locations-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.location-code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.location-aisle,
+.location-bay,
+.location-level {
+  color: #6b7280;
+  text-align: center;
+}
+
+.location-capacity {
+  color: #6b7280;
+  text-align: right;
+}
+
+/* Locations Actions */
+.location-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Locations Empty State */
+.locations-empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.locations-empty-state .empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.locations-empty-state .empty-state-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.locations-empty-state .empty-state-description {
+  font-size: 1rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Responsive Design for Locations Management */
+@media (max-width: 1024px) {
+  .top-header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .top-header-filters {
+    justify-content: center;
+  }
+  
+  .top-header-search {
+    max-width: none;
+    margin: 0;
+  }
+  
+  .top-header-actions {
+    justify-content: center;
+  }
+  
+  .locations-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .add-location-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .locations-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .filter-controls {
+    justify-content: space-between;
+  }
+  
+  .action-controls {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-header-content {
+    padding: 0 1rem;
+  }
+  
+  .top-header-filters {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .top-header-bar .dropdown-select {
+    min-width: 100%;
+  }
+  
+  .filter-controls {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .search-container {
+    max-width: none;
+  }
+  
+  .dropdown-button {
+    min-width: 100%;
+  }
+  
+  .locations-title {
+    font-size: 1.5rem;
+  }
+  
+  .locations-table-container {
+    overflow-x: auto;
+  }
+  
+  .locations-table {
+    min-width: 800px;
+  }
+}

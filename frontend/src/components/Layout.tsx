@@ -31,10 +31,16 @@ function Layout({ children }: LayoutProps) {
               <div className="logo-icon">📦</div>
               <div className="logo-content">
                 <span className="logo-text">Rolls Right</span>
-                <span className="logo-subtitle">est. 1970</span>
+                <span className="logo-subtitle">est. 1976</span>
               </div>
             </div>
           </Link>
+          
+          {/* Tenant Badge */}
+          <div className="tenant-badge">
+            <span className="tenant-text">RR Tenant</span>
+            <span className="tenant-status">active</span>
+          </div>
           
           {/* User Badge */}
           <div className="user-badge">
