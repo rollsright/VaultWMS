@@ -24,6 +24,9 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
+// Log CORS configuration for debugging
+console.log('🔒 CORS configured for origin:', process.env.FRONTEND_URL || 'http://localhost:3000');
+
 app.use(morgan('combined')); // Logging
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
