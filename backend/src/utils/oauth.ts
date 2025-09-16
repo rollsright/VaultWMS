@@ -6,8 +6,12 @@ export class OAuthService {
    */
   static async getOAuthUrl(provider: 'google' | 'azure', redirectTo?: string): Promise<string> {
     // Configure scopes and query params based on provider
+    const baseRedirectUrl = redirectTo || `${process.env.FRONTEND_URL || 'https://vault-wms-frontend.vercel.app'}/auth/callback`;
+    // Add provider parameter to callback URL so we know which provider was used
+    const redirectUrl = `${baseRedirectUrl}?provider=${provider}`;
+    
     let options: any = {
-      redirectTo: redirectTo || `${process.env.FRONTEND_URL || 'https://vault-wms-frontend.vercel.app'}/auth/callback`,
+      redirectTo: redirectUrl,
     };
 
     if (provider === 'azure') {
