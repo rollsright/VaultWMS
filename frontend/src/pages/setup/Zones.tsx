@@ -1,20 +1,28 @@
 import { useState } from 'react'
+import { useZones } from '../../hooks/useZones'
+import { useWarehouses } from '../../hooks/useWarehouses'
+import { CreateZoneRequest, UpdateZoneRequest } from '../../types/zone'
 import Button from '../../components/ui/Button'
-
-// Mock data for zones - will be replaced with API calls later
-const mockZones: any[] = [] // Empty for now to show empty state
+import ZoneModal from '../../components/ZoneModal'
 
 function Zones() {
-  const [zones] = useState(mockZones)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedWarehouse, setSelectedWarehouse] = useState('All Warehouses')
   const [selectedType, setSelectedType] = useState('All Types')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingZone, setEditingZone] = useState<any | undefined>()
+  
+  // Get selected warehouse ID for filtering
+  const selectedWarehouseId = selectedWarehouse === 'All Warehouses' ? undefined : selectedWarehouse
+  
+  const { warehouses } = useWarehouses()
+  const { zones, summary, loading, error, createZone, updateZone, deleteZone } = useZones(selectedWarehouseId)
   
   // Calculate summary statistics
-  const totalZones = zones.length
-  const activeZones = zones.filter(z => z.status === 'ACTIVE').length
-  const storageZones = zones.filter(z => z.type === 'STORAGE').length
-  const receivingZones = zones.filter(z => z.type === 'RECEIVING').length
+  const totalZones = summary.totalZones
+  const activeZones = summary.activeZones
+  const storageZones = summary.storageZones
+  const receivingZones = summary.receivingZones
 
   const handleExportCSV = () => {
     console.log('Export CSV')
@@ -27,18 +35,63 @@ function Zones() {
   }
 
   const handleAddZone = () => {
-    console.log('Add new zone')
-    // TODO: Implement add zone functionality
+    setEditingZone(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleEditZone = (zoneId: string) => {
+    const zone = zones.find(z => z.id === zoneId)
+    if (zone) {
+      setEditingZone(zone)
+      setIsModalOpen(true)
+    }
+  }
+
+  const handleDeleteZone = async (zoneId: string) => {
+    if (window.confirm('Are you sure you want to delete this zone? This action cannot be undone.')) {
+      try {
+        await deleteZone(zoneId)
+      } catch (error) {
+        console.error('Failed to delete zone:', error)
+        alert('Failed to delete zone. Please try again.')
+      }
+    }
+  }
+
+  const handleModalSubmit = async (data: CreateZoneRequest | UpdateZoneRequest) => {
+    if (editingZone) {
+      await updateZone(editingZone.id, data as UpdateZoneRequest)
+    } else {
+      await createZone(data as CreateZoneRequest)
+    }
   }
 
   const handleWarehouseChange = (warehouse: string) => {
     setSelectedWarehouse(warehouse)
-    // TODO: Filter zones by warehouse
   }
 
   const handleTypeChange = (type: string) => {
     setSelectedType(type)
-    // TODO: Filter zones by type
+  }
+
+  // Filter zones based on search and type
+  const filteredZones = zones.filter(zone => {
+    const matchesSearch = zone.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         zone.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         zone.type.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesType = selectedType === 'All Types' || zone.type === selectedType.toLowerCase()
+    return matchesSearch && matchesType
+  })
+
+  if (loading) {
+    return (
+      <div className="zones-management">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading zones...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -169,11 +222,20 @@ function Zones() {
         
         {/* Zones Table */}
         <div className="zones-table-container">
-          {zones.length === 0 ? (
+          {filteredZones.length === 0 ? (
             <div className="zones-empty-state">
               <div className="empty-state-icon">📦</div>
-              <h3 className="empty-state-title">Select a warehouse</h3>
-              <p className="empty-state-description">Choose a specific warehouse to view and manage its zones</p>
+              <h3 className="empty-state-title">
+                {zones.length === 0 ? 'No zones found' : 'No zones match your filters'}
+              </h3>
+              <p className="empty-state-description">
+                {zones.length === 0 
+                  ? (selectedWarehouse === 'All Warehouses' 
+                      ? 'Create your first zone by clicking the "Add Zone" button above'
+                      : 'No zones found for the selected warehouse')
+                  : 'Try adjusting your search or filter criteria'
+                }
+              </p>
             </div>
           ) : (
             <table className="zones-table">
@@ -185,25 +247,44 @@ function Zones() {
                   <th>Capacity</th>
                   <th>Status</th>
                   <th>Description</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {zones.map((zone) => (
+                {filteredZones.map((zone) => (
                   <tr key={zone.id}>
                     <td className="zone-name">{zone.name}</td>
                     <td className="zone-code">{zone.code}</td>
                     <td>
                       <span className={`type-badge ${zone.type.toLowerCase()}`}>
-                        {zone.type}
+                        {zone.type.charAt(0).toUpperCase() + zone.type.slice(1)}
                       </span>
                     </td>
-                    <td className="zone-capacity">{zone.capacity}</td>
+                    <td className="zone-capacity">
+                      {zone.capacity ? `${zone.capacity} ${zone.capacity_unit || 'units'}` : '-'}
+                    </td>
                     <td>
                       <span className={`status-badge ${zone.status.toLowerCase()}`}>
-                        {zone.status}
+                        {zone.status.toUpperCase()}
                       </span>
                     </td>
-                    <td className="zone-description">{zone.description}</td>
+                    <td className="zone-description">{zone.description || '-'}</td>
+                    <td className="zone-actions">
+                      <button 
+                        className="action-button edit-button"
+                        onClick={() => handleEditZone(zone.id)}
+                        title="Edit zone"
+                      >
+                        ✏️
+                      </button>
+                      <button 
+                        className="action-button delete-button"
+                        onClick={() => handleDeleteZone(zone.id)}
+                        title="Delete zone"
+                      >
+                        🗑️
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -211,6 +292,23 @@ function Zones() {
           )}
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="error-message-container">
+          <p className="error-message">{error}</p>
+        </div>
+      )}
+
+      {/* Zone Modal */}
+      <ZoneModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        zone={editingZone}
+        selectedWarehouseId={selectedWarehouseId}
+        isEditing={!!editingZone}
+      />
     </div>
   )
 }

@@ -242,6 +242,37 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Zone endpoints
+  async getZones(params?: { warehouse_id?: string }): Promise<ApiResponse<any[]>> {
+    const queryParams = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return this.request<any[]>(`/zones${queryParams}`);
+  }
+
+  async getZoneStats(params?: { warehouse_id?: string }): Promise<ApiResponse<any>> {
+    const queryParams = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return this.request<any>(`/zones/stats${queryParams}`);
+  }
+
+  async createZone(zoneData: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/zones', {
+      method: 'POST',
+      body: JSON.stringify(zoneData),
+    });
+  }
+
+  async updateZone(id: string, zoneData: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/zones/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(zoneData),
+    });
+  }
+
+  async deleteZone(id: string): Promise<ApiResponse> {
+    return this.request(`/zones/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);
