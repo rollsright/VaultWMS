@@ -304,6 +304,35 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Customer endpoints
+  async getCustomers(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/customers');
+  }
+
+  async getCustomerStats(): Promise<ApiResponse<any>> {
+    return this.request<any>('/customers/stats');
+  }
+
+  async createCustomer(customerData: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/customers', {
+      method: 'POST',
+      body: JSON.stringify(customerData),
+    });
+  }
+
+  async updateCustomer(id: string, customerData: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(customerData),
+    });
+  }
+
+  async deleteCustomer(id: string): Promise<ApiResponse> {
+    return this.request(`/customers/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

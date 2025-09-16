@@ -12,10 +12,11 @@ import usersRoutes from './routes/users';
 import warehousesRoutes from './routes/warehouses';
 import zonesRoutes from './routes/zones';
 import locationsRoutes from './routes/locations';
+import customersRoutes from './routes/customers';
 import './config/sequelize'; // Initialize database connection
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 // Configure CORS properly for authenticated requests
 const allowedOrigins = [
@@ -105,6 +106,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/warehouses', warehousesRoutes);
 app.use('/api/zones', zonesRoutes);
 app.use('/api/locations', locationsRoutes);
+app.use('/api/customers', customersRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

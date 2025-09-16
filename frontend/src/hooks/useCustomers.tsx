@@ -6,35 +6,43 @@ import { apiClient } from '../lib/api';
 const mockCustomers: Customer[] = [
   {
     id: '1',
+    customer_code: 'CUST-001',
     name: 'Customer test',
     email: 'customer@mail.com',
     location: 'Vancouver',
     status: 'active',
+    contact_name: 'John Doe',
     created_at: '2025-06-09T00:00:00Z',
     updated_at: '2025-06-09T00:00:00Z',
   },
   {
     id: '2',
+    customer_code: 'CUST-002',
     name: 'George Chen',
     email: 'george.chen@rollsright.ca',
     location: 'North Vancouver',
     status: 'active',
+    contact_name: 'George Chen',
     created_at: '2025-08-18T00:00:00Z',
     updated_at: '2025-08-18T00:00:00Z',
   },
   {
     id: '3',
+    customer_code: 'CUST-003',
     name: 'Testing',
     email: 'testing@test.com',
     status: 'active',
+    contact_name: 'Test User',
     created_at: '2025-06-23T00:00:00Z',
     updated_at: '2025-06-23T00:00:00Z',
   },
   {
     id: '4',
+    customer_code: 'CUST-004',
     name: 'Testing Company',
     email: 'jane@test.com',
     status: 'active',
+    contact_name: 'Jane Smith',
     created_at: '2025-06-25T00:00:00Z',
     updated_at: '2025-06-25T00:00:00Z',
   },
@@ -43,6 +51,7 @@ const mockCustomers: Customer[] = [
 const mockSummary: CustomerSummary = {
   totalCustomers: 4,
   activeCustomers: 4,
+  inactiveCustomers: 0,
   thisMonth: 0,
 };
 

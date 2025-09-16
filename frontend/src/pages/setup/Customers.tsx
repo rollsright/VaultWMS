@@ -1,9 +1,14 @@
+import { useState } from 'react'
 import { useCustomers } from '../../hooks/useCustomers'
+import { CreateCustomerRequest, UpdateCustomerRequest } from '../../types/customer'
 import Button from '../../components/ui/Button'
+import CustomerModal from '../../components/CustomerModal'
 import '../../styles/customer.css'
 
 function Customers() {
-  const { customers, summary, loading, error } = useCustomers()
+  const { customers, summary, loading, error, createCustomer, updateCustomer, deleteCustomer } = useCustomers()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCustomer, setEditingCustomer] = useState<typeof customers[0] | undefined>()
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -20,6 +25,35 @@ function Customers() {
       .join('')
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  const handleAddCustomer = () => {
+    setEditingCustomer(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleEditCustomer = (customer: typeof customers[0]) => {
+    setEditingCustomer(customer)
+    setIsModalOpen(true)
+  }
+
+  const handleDeleteCustomer = async (customerId: string) => {
+    if (window.confirm('Are you sure you want to delete this customer? This action cannot be undone.')) {
+      try {
+        await deleteCustomer(customerId)
+      } catch (error) {
+        console.error('Failed to delete customer:', error)
+        alert('Failed to delete customer. Please try again.')
+      }
+    }
+  }
+
+  const handleModalSubmit = async (data: CreateCustomerRequest | UpdateCustomerRequest) => {
+    if (editingCustomer) {
+      await updateCustomer(editingCustomer.id, data as UpdateCustomerRequest)
+    } else {
+      await createCustomer(data as CreateCustomerRequest)
+    }
   }
 
   if (loading) {
@@ -53,7 +87,7 @@ function Customers() {
           <p className="page-description">Manage customers for RR Tenant</p>
         </div>
         <div className="page-actions">
-          <Button className="add-customer-btn">
+          <Button className="add-customer-btn" onClick={handleAddCustomer}>
             <span className="btn-icon">+</span>
             Add Customer
           </Button>
@@ -143,8 +177,24 @@ function Customers() {
               </div>
 
               <div className="customer-meta">
+                <div className="customer-actions">
+                  <button 
+                    className="action-button edit-button"
+                    onClick={() => handleEditCustomer(customer)}
+                    title="Edit customer"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    className="action-button delete-button"
+                    onClick={() => handleDeleteCustomer(customer.id)}
+                    title="Delete customer"
+                  >
+                    🗑️
+                  </button>
+                </div>
                 <div className={`status-badge ${customer.status}`}>
-                  {customer.status}
+                  {customer.status.toUpperCase()}
                 </div>
                 <div className="created-date">
                   Created: {formatDate(customer.created_at)}
@@ -154,6 +204,15 @@ function Customers() {
           ))}
         </div>
       </div>
+
+      {/* Customer Modal */}
+      <CustomerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        customer={editingCustomer}
+        isEditing={!!editingCustomer}
+      />
     </div>
   )
 }
