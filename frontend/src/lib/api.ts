@@ -273,6 +273,37 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Location endpoints
+  async getLocations(params?: { warehouse_id?: string; zone_id?: string }): Promise<ApiResponse<any[]>> {
+    const queryParams = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return this.request<any[]>(`/locations${queryParams}`);
+  }
+
+  async getLocationStats(params?: { warehouse_id?: string; zone_id?: string }): Promise<ApiResponse<any>> {
+    const queryParams = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return this.request<any>(`/locations/stats${queryParams}`);
+  }
+
+  async createLocation(locationData: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/locations', {
+      method: 'POST',
+      body: JSON.stringify(locationData),
+    });
+  }
+
+  async updateLocation(id: string, locationData: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/locations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(locationData),
+    });
+  }
+
+  async deleteLocation(id: string): Promise<ApiResponse> {
+    return this.request(`/locations/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

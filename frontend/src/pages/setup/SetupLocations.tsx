@@ -1,14 +1,22 @@
 import { useState } from 'react'
+import { useLocations } from '../../hooks/useLocations'
+import { useWarehouses } from '../../hooks/useWarehouses'
+import { CreateLocationRequest, UpdateLocationRequest } from '../../types/location'
 import Button from '../../components/ui/Button'
-
-// Mock data for locations - will be replaced with API calls later
-const mockLocations: any[] = [] // Empty for now to show empty state
+import LocationModal from '../../components/LocationModal'
 
 function SetupLocations() {
-  const [locations] = useState(mockLocations)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedWarehouse, setSelectedWarehouse] = useState('All Warehouses')
   const [selectedStatus, setSelectedStatus] = useState('All Statuses')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingLocation, setEditingLocation] = useState<any | undefined>()
+  
+  // Get selected warehouse ID for filtering
+  const selectedWarehouseId = selectedWarehouse === 'All Warehouses' ? undefined : selectedWarehouse
+  
+  const { warehouses } = useWarehouses()
+  const { locations, summary, loading, error, createLocation, updateLocation, deleteLocation } = useLocations(selectedWarehouseId)
 
   const handleExport = () => {
     console.log('Export locations')
@@ -16,18 +24,66 @@ function SetupLocations() {
   }
 
   const handleAddLocation = () => {
-    console.log('Add new location')
-    // TODO: Implement add location functionality
+    setEditingLocation(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleEditLocation = (locationId: string) => {
+    const location = locations.find(l => l.id === locationId)
+    if (location) {
+      setEditingLocation(location)
+      setIsModalOpen(true)
+    }
+  }
+
+  const handleDeleteLocation = async (locationId: string) => {
+    if (window.confirm('Are you sure you want to delete this location? This action cannot be undone.')) {
+      try {
+        await deleteLocation(locationId)
+      } catch (error) {
+        console.error('Failed to delete location:', error)
+        alert('Failed to delete location. Please try again.')
+      }
+    }
+  }
+
+  const handleModalSubmit = async (data: CreateLocationRequest | UpdateLocationRequest) => {
+    if (editingLocation) {
+      await updateLocation(editingLocation.id, data as UpdateLocationRequest)
+    } else {
+      await createLocation(data as CreateLocationRequest)
+    }
   }
 
   const handleWarehouseChange = (warehouse: string) => {
     setSelectedWarehouse(warehouse)
-    // TODO: Filter locations by warehouse
   }
 
   const handleStatusChange = (status: string) => {
     setSelectedStatus(status)
-    // TODO: Filter locations by status
+  }
+
+  // Filter locations based on search and status
+  const filteredLocations = locations.filter(location => {
+    const matchesSearch = location.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (location.name && location.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (location.aisle && location.aisle.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (location.bay && location.bay.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesStatus = selectedStatus === 'All Statuses' || 
+                         (selectedStatus === 'ACTIVE' && location.status === 'active') ||
+                         (selectedStatus === 'INACTIVE' && location.status === 'inactive')
+    return matchesSearch && matchesStatus
+  })
+
+  if (loading) {
+    return (
+      <div className="locations-management">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading locations...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -43,11 +99,11 @@ function SetupLocations() {
                 className="dropdown-select"
               >
                 <option value="All Warehouses">All Warehouses</option>
-                <option value="Delta Warehouse">Delta Warehouse</option>
-                <option value="Delta Warehouse2">Delta Warehouse2</option>
-                <option value="Coquitlam Test-01">Coquitlam Test-01</option>
-                <option value="East Vancouver Test">East Vancouver Test</option>
-                <option value="United">United</option>
+                {warehouses.filter(w => w.status === 'active').map((warehouse) => (
+                  <option key={warehouse.id} value={warehouse.id}>
+                    {warehouse.name}
+                  </option>
+                ))}
               </select>
             </div>
             
@@ -117,17 +173,27 @@ function SetupLocations() {
         
         {/* Locations Table */}
         <div className="locations-table-container">
-          {locations.length === 0 ? (
+          {filteredLocations.length === 0 ? (
             <div className="locations-empty-state">
               <div className="empty-state-icon">📍</div>
-              <h3 className="empty-state-title">Select a warehouse</h3>
-              <p className="empty-state-description">Choose a specific warehouse to view its current locations</p>
+              <h3 className="empty-state-title">
+                {locations.length === 0 ? 'No locations found' : 'No locations match your filters'}
+              </h3>
+              <p className="empty-state-description">
+                {locations.length === 0 
+                  ? (selectedWarehouse === 'All Warehouses' 
+                      ? 'Create your first location by clicking the "Add Location" button above'
+                      : 'No locations found for the selected warehouse')
+                  : 'Try adjusting your search or filter criteria'
+                }
+              </p>
             </div>
           ) : (
             <table className="locations-table">
               <thead>
                 <tr>
                   <th>Location Code</th>
+                  <th>Name</th>
                   <th>Aisle</th>
                   <th>Bay</th>
                   <th>Level</th>
@@ -138,34 +204,37 @@ function SetupLocations() {
                 </tr>
               </thead>
               <tbody>
-                {locations.map((location) => (
+                {filteredLocations.map((location) => (
                   <tr key={location.id}>
                     <td className="location-code">{location.code}</td>
-                    <td className="location-aisle">{location.aisle}</td>
-                    <td className="location-bay">{location.bay}</td>
-                    <td className="location-level">{location.level}</td>
+                    <td className="location-name">{location.name || '-'}</td>
+                    <td className="location-aisle">{location.aisle || '-'}</td>
+                    <td className="location-bay">{location.bay || '-'}</td>
+                    <td className="location-level">{location.level || '-'}</td>
                     <td>
                       <span className={`type-badge ${location.type.toLowerCase()}`}>
-                        {location.type}
+                        {location.type.charAt(0).toUpperCase() + location.type.slice(1).replace('_', ' ')}
                       </span>
                     </td>
                     <td>
                       <span className={`status-badge ${location.status.toLowerCase()}`}>
-                        {location.status}
+                        {location.status.toUpperCase()}
                       </span>
                     </td>
-                    <td className="location-capacity">{location.capacity}</td>
+                    <td className="location-capacity">
+                      {location.capacity ? `${location.capacity} ${location.capacity_unit || 'units'}` : '-'}
+                    </td>
                     <td className="location-actions">
                       <button 
                         className="action-button edit-button"
-                        onClick={() => console.log('Edit location:', location.id)}
+                        onClick={() => handleEditLocation(location.id)}
                         title="Edit location"
                       >
                         ✏️
                       </button>
                       <button 
                         className="action-button delete-button"
-                        onClick={() => console.log('Delete location:', location.id)}
+                        onClick={() => handleDeleteLocation(location.id)}
                         title="Delete location"
                       >
                         🗑️
@@ -178,6 +247,23 @@ function SetupLocations() {
           )}
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="error-message-container">
+          <p className="error-message">{error}</p>
+        </div>
+      )}
+
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        location={editingLocation}
+        selectedWarehouseId={selectedWarehouseId}
+        isEditing={!!editingLocation}
+      />
     </div>
   )
 }
