@@ -9,7 +9,7 @@ import '../../styles/customer.css'
 function Suppliers() {
   const { customers } = useCustomers()
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('')
-  const { suppliers, summary, loading, error, createSupplier, updateSupplier } = useSuppliers(selectedCustomerId)
+  const { suppliers, summary, loading, error, createSupplier, updateSupplier, deleteSupplier } = useSuppliers(selectedCustomerId)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<typeof suppliers[0] | undefined>()
 
@@ -40,6 +40,17 @@ function Suppliers() {
   const handleEditSupplier = (supplier: typeof suppliers[0]) => {
     setEditingSupplier(supplier)
     setIsModalOpen(true)
+  }
+
+  const handleDeleteSupplier = async (supplierId: string) => {
+    if (window.confirm('Are you sure you want to delete this supplier? This action cannot be undone.')) {
+      try {
+        await deleteSupplier(supplierId)
+      } catch (error) {
+        console.error('Failed to delete supplier:', error)
+        alert('Failed to delete supplier. Please try again.')
+      }
+    }
   }
 
   const handleModalSubmit = async (data: CreateSupplierRequest | UpdateSupplierRequest) => {
@@ -185,7 +196,7 @@ function Suppliers() {
             ) : (
               <div className="customers-list">
                 {suppliers.map((supplier) => (
-                  <div key={supplier.id} className="customer-card" onClick={() => handleEditSupplier(supplier)} style={{ cursor: 'pointer' }}>
+                  <div key={supplier.id} className="customer-card">
                     <div className="customer-avatar">
                       <span className="avatar-text">{getInitials(supplier.name)}</span>
                     </div>
@@ -221,8 +232,24 @@ function Suppliers() {
                     </div>
 
                     <div className="customer-meta">
+                      <div className="customer-actions">
+                        <button 
+                          className="action-button edit-button"
+                          onClick={() => handleEditSupplier(supplier)}
+                          title="Edit supplier"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          className="action-button delete-button"
+                          onClick={() => handleDeleteSupplier(supplier.id)}
+                          title="Delete supplier"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                       <div className={`status-badge ${supplier.status}`}>
-                        {supplier.status}
+                        {supplier.status.toUpperCase()}
                       </div>
                       {supplier.payment_terms && (
                         <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>

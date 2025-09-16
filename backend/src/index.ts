@@ -13,6 +13,7 @@ import warehousesRoutes from './routes/warehouses';
 import zonesRoutes from './routes/zones';
 import locationsRoutes from './routes/locations';
 import customersRoutes from './routes/customers';
+import suppliersRoutes from './routes/suppliers';
 import './config/sequelize'; // Initialize database connection
 
 const app = express();
@@ -107,6 +108,7 @@ app.use('/api/warehouses', warehousesRoutes);
 app.use('/api/zones', zonesRoutes);
 app.use('/api/locations', locationsRoutes);
 app.use('/api/customers', customersRoutes);
+app.use('/api/suppliers', suppliersRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -333,6 +333,37 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Supplier endpoints
+  async getSuppliers(params?: { customer_id?: string }): Promise<ApiResponse<any[]>> {
+    const queryParams = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return this.request<any[]>(`/suppliers${queryParams}`);
+  }
+
+  async getSupplierStats(params?: { customer_id?: string }): Promise<ApiResponse<any>> {
+    const queryParams = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return this.request<any>(`/suppliers/stats${queryParams}`);
+  }
+
+  async createSupplier(supplierData: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/suppliers', {
+      method: 'POST',
+      body: JSON.stringify(supplierData),
+    });
+  }
+
+  async updateSupplier(id: string, supplierData: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/suppliers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(supplierData),
+    });
+  }
+
+  async deleteSupplier(id: string): Promise<ApiResponse> {
+    return this.request(`/suppliers/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);
