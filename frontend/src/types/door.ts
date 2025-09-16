@@ -60,10 +60,4 @@ export interface UpdateDoorRequest {
   capacity?: number;
 }
 
-export interface Warehouse {
-  id: string;
-  name: string;
-  code: string;
-  location: string;
-  status: 'active' | 'inactive';
-}
+// Warehouse interface moved to ./warehouse.ts

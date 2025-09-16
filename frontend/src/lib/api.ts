@@ -213,6 +213,35 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Warehouse endpoints
+  async getWarehouses(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/warehouses');
+  }
+
+  async getWarehouseStats(): Promise<ApiResponse<any>> {
+    return this.request<any>('/warehouses/stats');
+  }
+
+  async createWarehouse(warehouseData: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/warehouses', {
+      method: 'POST',
+      body: JSON.stringify(warehouseData),
+    });
+  }
+
+  async updateWarehouse(id: string, warehouseData: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/warehouses/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(warehouseData),
+    });
+  }
+
+  async deleteWarehouse(id: string): Promise<ApiResponse> {
+    return this.request(`/warehouses/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

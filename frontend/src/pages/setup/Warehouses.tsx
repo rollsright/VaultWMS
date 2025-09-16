@@ -1,66 +1,60 @@
 import { useState } from 'react'
+import { useWarehouses } from '../../hooks/useWarehouses'
+import { CreateWarehouseRequest, UpdateWarehouseRequest } from '../../types/warehouse'
 import Button from '../../components/ui/Button'
-
-// Mock data for warehouses - will be replaced with API calls later
-const mockWarehouses = [
-  {
-    id: 1,
-    name: 'Delta Warehouse2',
-    code: 'Delta2',
-    location: 'Delta, BC',
-    status: 'ACTIVE'
-  },
-  {
-    id: 2,
-    name: 'Delta Warehouse',
-    code: 'Delta',
-    location: 'Delta, BC',
-    status: 'ACTIVE'
-  },
-  {
-    id: 3,
-    name: 'Coquitlam Test-01',
-    code: 'CQ-TEST',
-    location: 'Vancouver, BC',
-    status: 'INACTIVE'
-  },
-  {
-    id: 4,
-    name: 'East Vancouver Test',
-    code: 'EVT-01',
-    location: 'Vancouver, BC',
-    status: 'ACTIVE'
-  },
-  {
-    id: 5,
-    name: 'United',
-    code: 'UN-01',
-    location: 'Coquitlam, BC',
-    status: 'ACTIVE'
-  }
-]
+import WarehouseModal from '../../components/WarehouseModal'
 
 function Warehouses() {
-  const [warehouses] = useState(mockWarehouses)
+  const { warehouses, summary, loading, error, createWarehouse, updateWarehouse, deleteWarehouse } = useWarehouses()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingWarehouse, setEditingWarehouse] = useState<typeof warehouses[0] | undefined>()
   
   // Calculate summary statistics
-  const totalWarehouses = warehouses.length
-  const activeWarehouses = warehouses.filter(w => w.status === 'ACTIVE').length
+  const totalWarehouses = summary.totalWarehouses
+  const activeWarehouses = summary.activeWarehouses
   const totalLocations = '-'
 
-  const handleEdit = (warehouseId: number) => {
-    console.log('Edit warehouse:', warehouseId)
-    // TODO: Implement edit functionality
+  const handleEdit = (warehouseId: string) => {
+    const warehouse = warehouses.find(w => w.id === warehouseId)
+    if (warehouse) {
+      setEditingWarehouse(warehouse)
+      setIsModalOpen(true)
+    }
   }
 
-  const handleDelete = (warehouseId: number) => {
-    console.log('Delete warehouse:', warehouseId)
-    // TODO: Implement delete functionality
+  const handleDelete = async (warehouseId: string) => {
+    if (window.confirm('Are you sure you want to delete this warehouse? This action cannot be undone.')) {
+      try {
+        await deleteWarehouse(warehouseId)
+      } catch (error) {
+        console.error('Failed to delete warehouse:', error)
+        alert('Failed to delete warehouse. Please try again.')
+      }
+    }
   }
 
   const handleAddWarehouse = () => {
-    console.log('Add new warehouse')
-    // TODO: Implement add warehouse functionality
+    setEditingWarehouse(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleModalSubmit = async (data: CreateWarehouseRequest | UpdateWarehouseRequest) => {
+    if (editingWarehouse) {
+      await updateWarehouse(editingWarehouse.id, data as UpdateWarehouseRequest)
+    } else {
+      await createWarehouse(data as CreateWarehouseRequest)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="warehouse-management">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading warehouses...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -135,7 +129,7 @@ function Warehouses() {
                   <td className="warehouse-location">{warehouse.location}</td>
                   <td>
                     <span className={`status-badge ${warehouse.status.toLowerCase()}`}>
-                      {warehouse.status}
+                      {warehouse.status.toUpperCase()}
                     </span>
                   </td>
                   <td className="warehouse-actions">
@@ -160,6 +154,22 @@ function Warehouses() {
           </table>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="error-message-container">
+          <p className="error-message">{error}</p>
+        </div>
+      )}
+
+      {/* Warehouse Modal */}
+      <WarehouseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleModalSubmit}
+        warehouse={editingWarehouse}
+        isEditing={!!editingWarehouse}
+      />
     </div>
   )
 }
