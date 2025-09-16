@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UOM, UOMSummary, CreateUOMRequest, UpdateUOMRequest } from '../types/uom';
+import { apiClient } from '../lib/api';
 
 // Mock data for development - will be replaced with API calls
 const mockUOMs: UOM[] = [
@@ -116,17 +117,35 @@ export function useUOMs() {
       setLoading(true);
       setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const [uomsResponse, statsResponse] = await Promise.all([
+        apiClient.getUOMs(),
+        apiClient.getUOMStats()
+      ]);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/uoms');
-      // setUOMs(response.data);
+      if (uomsResponse.success && uomsResponse.data) {
+        setUOMs(uomsResponse.data);
+      } else {
+        throw new Error(uomsResponse.error || 'Failed to fetch UOMs');
+      }
       
+      if (statsResponse.success && statsResponse.data) {
+        setSummary(statsResponse.data);
+      } else {
+        // Use fallback summary if stats fail
+        const uomsList = uomsResponse.data || [];
+        setSummary({
+          totalUOMs: uomsList.length,
+          weightUOMs: uomsList.filter((u: any) => u.type === 'WEIGHT').length,
+          volumeUOMs: uomsList.filter((u: any) => u.type === 'VOLUME').length,
+          lengthUOMs: uomsList.filter((u: any) => u.type === 'LENGTH').length,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load UOMs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load UOMs');
+      // Fallback to mock data in case of error
       setUOMs(mockUOMs);
       setSummary(mockSummary);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load UOMs');
     } finally {
       setLoading(false);
     }
@@ -136,41 +155,33 @@ export function useUOMs() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/uoms', {
-      //   method: 'POST',
-      //   body: JSON.stringify(uomData),
-      // });
+      const response = await apiClient.createUOM(uomData);
       
-      const newUOM: UOM = {
-        id: Date.now().toString(),
-        ...uomData,
-        is_active: uomData.is_active ?? true,
-        base_unit: uomData.base_unit ?? false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setUOMs(prev => [...prev, newUOM]);
-      
-      // Update summary
-      setSummary(prev => {
-        const newSummary = { ...prev, totalUOMs: prev.totalUOMs + 1 };
-        switch (uomData.type) {
-          case 'WEIGHT':
-            newSummary.weightUOMs += 1;
-            break;
-          case 'VOLUME':
-            newSummary.volumeUOMs += 1;
-            break;
-          case 'LENGTH':
-            newSummary.lengthUOMs += 1;
-            break;
-        }
-        return newSummary;
-      });
-      
-      return newUOM;
+      if (response.success && response.data) {
+        const newUOM = response.data;
+        setUOMs(prev => [...prev, newUOM]);
+        
+        // Update summary
+        setSummary(prev => {
+          const newSummary = { ...prev, totalUOMs: prev.totalUOMs + 1 };
+          switch (newUOM.type) {
+            case 'WEIGHT':
+              newSummary.weightUOMs += 1;
+              break;
+            case 'VOLUME':
+              newSummary.volumeUOMs += 1;
+              break;
+            case 'LENGTH':
+              newSummary.lengthUOMs += 1;
+              break;
+          }
+          return newSummary;
+        });
+        
+        return newUOM;
+      } else {
+        throw new Error(response.error || 'Failed to create UOM');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create UOM');
       throw err;
@@ -181,21 +192,16 @@ export function useUOMs() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/uoms/${id}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify(uomData),
-      // });
+      const response = await apiClient.updateUOM(id, uomData);
       
-      const updatedUOM: UOM = {
-        ...uoms.find(u => u.id === id)!,
-        ...uomData,
-        updated_at: new Date().toISOString(),
-      };
-      
-      setUOMs(prev => prev.map(u => u.id === id ? updatedUOM : u));
-      
-      return updatedUOM;
+      if (response.success && response.data) {
+        const updatedUOM = response.data;
+        setUOMs(prev => prev.map(u => u.id === id ? updatedUOM : u));
+        
+        return updatedUOM;
+      } else {
+        throw new Error(response.error || 'Failed to update UOM');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update UOM');
       throw err;
@@ -206,30 +212,31 @@ export function useUOMs() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // await apiClient.request(`/uoms/${id}`, {
-      //   method: 'DELETE',
-      // });
-      
       const uom = uoms.find(u => u.id === id);
-      setUOMs(prev => prev.filter(u => u.id !== id));
+      const response = await apiClient.deleteUOM(id);
       
-      if (uom) {
-        setSummary(prev => {
-          const newSummary = { ...prev, totalUOMs: prev.totalUOMs - 1 };
-          switch (uom.type) {
-            case 'WEIGHT':
-              newSummary.weightUOMs -= 1;
-              break;
-            case 'VOLUME':
-              newSummary.volumeUOMs -= 1;
-              break;
-            case 'LENGTH':
-              newSummary.lengthUOMs -= 1;
-              break;
-          }
-          return newSummary;
-        });
+      if (response.success) {
+        setUOMs(prev => prev.filter(u => u.id !== id));
+        
+        if (uom) {
+          setSummary(prev => {
+            const newSummary = { ...prev, totalUOMs: prev.totalUOMs - 1 };
+            switch (uom.type) {
+              case 'WEIGHT':
+                newSummary.weightUOMs -= 1;
+                break;
+              case 'VOLUME':
+                newSummary.volumeUOMs -= 1;
+                break;
+              case 'LENGTH':
+                newSummary.lengthUOMs -= 1;
+                break;
+            }
+            return newSummary;
+          });
+        }
+      } else {
+        throw new Error(response.error || 'Failed to delete UOM');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete UOM');

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { supabase } from '../config/supabase';
+import { supabase, supabaseAdmin } from '../config/supabase';
 import { 
   LoginRequest, 
   SignupRequest, 
@@ -13,16 +13,40 @@ import { OAuthService } from '../utils/oauth';
 
 const router = Router();
 
+// Helper function to get default tenant (must exist)
+async function getDefaultTenant() {
+  try {
+    console.log('🔍 Getting default tenant...');
+    
+    const { data: existingTenant, error: selectError } = await supabaseAdmin
+      .from('tenants')
+      .select('id')
+      .eq('slug', 'default')
+      .single();
+
+    if (selectError || !existingTenant) {
+      console.error('❌ Default tenant not found:', selectError);
+      throw new Error('Default tenant not found. Please create it manually in Supabase with slug "default"');
+    }
+
+    console.log('✅ Found default tenant:', existingTenant.id);
+    return existingTenant.id;
+  } catch (error) {
+    console.error('❌ Error getting default tenant:', error);
+    throw error;
+  }
+}
+
 // Sign up route
 router.post('/signup', async (req: Request, res: Response) => {
   try {
-    const { email, password }: SignupRequest = req.body;
+    const { email, password, first_name, last_name }: SignupRequest = req.body;
 
     // Validate input
-    if (!email || !password) {
+    if (!email || !password || !first_name || !last_name) {
       return res.status(400).json({
         success: false,
-        error: 'Email and password are required'
+        error: 'Email, password, first name, and last name are required'
       } as ApiResponse);
     }
 
@@ -43,10 +67,17 @@ router.post('/signup', async (req: Request, res: Response) => {
       } as ApiResponse);
     }
 
-    // Create user with Supabase
+    // Create user with Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          first_name,
+          last_name,
+          full_name: `${first_name} ${last_name}`
+        }
+      }
     });
 
     if (error) {
@@ -54,6 +85,40 @@ router.post('/signup', async (req: Request, res: Response) => {
         success: false,
         error: error.message
       } as ApiResponse);
+    }
+
+    // If user was created successfully, create corresponding record in public.users table
+    if (data.user) {
+      try {
+        // Get default tenant (must exist)
+        const tenantId = await getDefaultTenant();
+
+        // Create user record in public.users table
+        const now = new Date().toISOString();
+        const { error: userInsertError } = await supabaseAdmin
+          .from('users')
+          .insert({
+            id: crypto.randomUUID(),
+            supabase_user_id: data.user.id,
+            tenant_id: tenantId,
+            email: email,
+            first_name: first_name,
+            last_name: last_name,
+            role: 'operator', // default role
+            is_active: true,
+            created_at: now,
+            updated_at: now
+          });
+
+        if (userInsertError) {
+          console.error('Error creating user in public.users table:', userInsertError);
+          // Note: We don't return an error here because the Supabase Auth user was already created
+          // The user can still authenticate, but admin might need to manually create the public.users record
+        }
+      } catch (userCreationError) {
+        console.error('Error in user creation process:', userCreationError);
+        // Same as above - don't fail the signup since Auth user exists
+      }
     }
 
     res.status(201).json({

@@ -23,7 +23,7 @@ interface AuthContextType {
   session: any | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'azure') => Promise<void>;
   updateAuthState: (user: User | null, session: any | null) => void;
@@ -84,8 +84,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return { error: response.error };
   };
 
-  const signUp = async (email: string, password: string) => {
-    const response = await apiClient.signup({ email, password });
+  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+    const response = await apiClient.signup({ email, password, first_name: firstName, last_name: lastName });
     if (response.success && response.data) {
       setUser(response.data.user);
       setSession(response.data.session);

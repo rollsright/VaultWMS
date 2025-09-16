@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Door, DoorSummary, CreateDoorRequest, UpdateDoorRequest } from '../types/door';
+import { apiClient } from '../lib/api';
 
 // Mock data for development - will be replaced with API calls
 const mockDoors: Door[] = [
@@ -120,49 +121,42 @@ export function useDoors(warehouseId?: string) {
     }
   }, [warehouseId]);
 
-  const loadDoors = async (warehouseIdFilter: string) => {
+  const loadDoors = async (warehouseIdFilter?: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const [doorsResponse, statsResponse] = await Promise.all([
+        warehouseIdFilter ? apiClient.getDoors({ warehouse_id: warehouseIdFilter }) : apiClient.getDoors(),
+        apiClient.getDoorStats()
+      ]);
       
-      // Filter doors by warehouse ID
-      const filteredDoors = mockDoors.filter(door => door.warehouse_id === warehouseIdFilter);
+      if (doorsResponse.success && doorsResponse.data) {
+        setDoors(doorsResponse.data);
+        calculateSummary(doorsResponse.data);
+      } else {
+        throw new Error(doorsResponse.error || 'Failed to fetch doors');
+      }
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/warehouses/${warehouseIdFilter}/doors`);
-      // setDoors(response.data);
-      
+      if (statsResponse.success && statsResponse.data) {
+        setSummary(statsResponse.data);
+      }
+    } catch (err) {
+      console.error('Failed to load doors:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load doors');
+      // Fallback to mock data in case of error
+      const filteredDoors = warehouseIdFilter 
+        ? mockDoors.filter(door => door.warehouse_id === warehouseIdFilter)
+        : mockDoors;
       setDoors(filteredDoors);
       calculateSummary(filteredDoors);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load doors');
     } finally {
       setLoading(false);
     }
   };
 
   const loadAllDoors = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/doors');
-      // setDoors(response.data);
-      
-      setDoors(mockDoors);
-      calculateSummary(mockDoors);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load doors');
-    } finally {
-      setLoading(false);
-    }
+    await loadDoors();
   };
 
   const calculateSummary = (doorsList: Door[]) => {
@@ -178,25 +172,17 @@ export function useDoors(warehouseId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/warehouses/${doorData.warehouse_id}/doors`, {
-      //   method: 'POST',
-      //   body: JSON.stringify(doorData),
-      // });
+      const response = await apiClient.createDoor(doorData);
       
-      const newDoor: Door = {
-        id: Date.now().toString(),
-        ...doorData,
-        status: doorData.status || 'active',
-        is_active: doorData.is_active ?? true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setDoors(prev => [...prev, newDoor]);
-      calculateSummary([...doors, newDoor]);
-      
-      return newDoor;
+      if (response.success && response.data) {
+        const newDoor = response.data;
+        setDoors(prev => [...prev, newDoor]);
+        calculateSummary([...doors, newDoor]);
+        
+        return newDoor;
+      } else {
+        throw new Error(response.error || 'Failed to create door');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create door');
       throw err;
@@ -207,24 +193,18 @@ export function useDoors(warehouseId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/doors/${id}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify(doorData),
-      // });
+      const response = await apiClient.updateDoor(id, doorData);
       
-      const oldDoor = doors.find(door => door.id === id)!;
-      const updatedDoor: Door = {
-        ...oldDoor,
-        ...doorData,
-        updated_at: new Date().toISOString(),
-      };
-      
-      const updatedDoors = doors.map(door => door.id === id ? updatedDoor : door);
-      setDoors(updatedDoors);
-      calculateSummary(updatedDoors);
-      
-      return updatedDoor;
+      if (response.success && response.data) {
+        const updatedDoor = response.data;
+        const updatedDoors = doors.map(door => door.id === id ? updatedDoor : door);
+        setDoors(updatedDoors);
+        calculateSummary(updatedDoors);
+        
+        return updatedDoor;
+      } else {
+        throw new Error(response.error || 'Failed to update door');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update door');
       throw err;
@@ -235,14 +215,15 @@ export function useDoors(warehouseId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // await apiClient.request(`/doors/${id}`, {
-      //   method: 'DELETE',
-      // });
+      const response = await apiClient.deleteDoor(id);
       
-      const updatedDoors = doors.filter(door => door.id !== id);
-      setDoors(updatedDoors);
-      calculateSummary(updatedDoors);
+      if (response.success) {
+        const updatedDoors = doors.filter(door => door.id !== id);
+        setDoors(updatedDoors);
+        calculateSummary(updatedDoors);
+      } else {
+        throw new Error(response.error || 'Failed to delete door');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete door');
       throw err;
@@ -257,6 +238,6 @@ export function useDoors(warehouseId?: string) {
     createDoor,
     updateDoor,
     deleteDoor,
-    refreshDoors: () => warehouseId && loadDoors(warehouseId),
+    refreshDoors: () => warehouseId === 'all' ? loadAllDoors() : warehouseId && loadDoors(warehouseId),
   };
 }

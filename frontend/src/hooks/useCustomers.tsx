@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Customer, CustomerSummary, CreateCustomerRequest, UpdateCustomerRequest } from '../types/customer';
+import { apiClient } from '../lib/api';
 
 // Mock data for development - will be replaced with API calls
 const mockCustomers: Customer[] = [
@@ -61,17 +62,34 @@ export function useCustomers() {
       setLoading(true);
       setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const [customersResponse, statsResponse] = await Promise.all([
+        apiClient.getCustomers(),
+        apiClient.getCustomerStats()
+      ]);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/customers');
-      // setCustomers(response.data);
+      if (customersResponse.success && customersResponse.data) {
+        setCustomers(customersResponse.data);
+      } else {
+        throw new Error(customersResponse.error || 'Failed to fetch customers');
+      }
       
+      if (statsResponse.success && statsResponse.data) {
+        setSummary(statsResponse.data);
+      } else {
+        // Use fallback summary if stats fail
+        const customersList = customersResponse.data || [];
+        setSummary({
+          totalCustomers: customersList.length,
+          activeCustomers: customersList.filter((c: any) => c.status === 'active').length,
+          thisMonth: 0,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load customers:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load customers');
+      // Fallback to mock data in case of error
       setCustomers(mockCustomers);
       setSummary(mockSummary);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load customers');
     } finally {
       setLoading(false);
     }
@@ -81,28 +99,21 @@ export function useCustomers() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/customers', {
-      //   method: 'POST',
-      //   body: JSON.stringify(customerData),
-      // });
+      const response = await apiClient.createCustomer(customerData);
       
-      const newCustomer: Customer = {
-        id: Date.now().toString(),
-        ...customerData,
-        status: customerData.status || 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setCustomers(prev => [...prev, newCustomer]);
-      setSummary(prev => ({
-        ...prev,
-        totalCustomers: prev.totalCustomers + 1,
-        activeCustomers: customerData.status !== 'inactive' ? prev.activeCustomers + 1 : prev.activeCustomers,
-      }));
-      
-      return newCustomer;
+      if (response.success && response.data) {
+        const newCustomer = response.data;
+        setCustomers(prev => [...prev, newCustomer]);
+        setSummary(prev => ({
+          ...prev,
+          totalCustomers: prev.totalCustomers + 1,
+          activeCustomers: newCustomer.status !== 'inactive' ? prev.activeCustomers + 1 : prev.activeCustomers,
+        }));
+        
+        return newCustomer;
+      } else {
+        throw new Error(response.error || 'Failed to create customer');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create customer');
       throw err;
@@ -113,21 +124,16 @@ export function useCustomers() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/customers/${id}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify(customerData),
-      // });
+      const response = await apiClient.updateCustomer(id, customerData);
       
-      const updatedCustomer: Customer = {
-        ...customers.find(c => c.id === id)!,
-        ...customerData,
-        updated_at: new Date().toISOString(),
-      };
-      
-      setCustomers(prev => prev.map(c => c.id === id ? updatedCustomer : c));
-      
-      return updatedCustomer;
+      if (response.success && response.data) {
+        const updatedCustomer = response.data;
+        setCustomers(prev => prev.map(c => c.id === id ? updatedCustomer : c));
+        
+        return updatedCustomer;
+      } else {
+        throw new Error(response.error || 'Failed to update customer');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update customer');
       throw err;
@@ -138,20 +144,21 @@ export function useCustomers() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // await apiClient.request(`/customers/${id}`, {
-      //   method: 'DELETE',
-      // });
-      
       const customer = customers.find(c => c.id === id);
-      setCustomers(prev => prev.filter(c => c.id !== id));
+      const response = await apiClient.deleteCustomer(id);
       
-      if (customer) {
-        setSummary(prev => ({
-          ...prev,
-          totalCustomers: prev.totalCustomers - 1,
-          activeCustomers: customer.status === 'active' ? prev.activeCustomers - 1 : prev.activeCustomers,
-        }));
+      if (response.success) {
+        setCustomers(prev => prev.filter(c => c.id !== id));
+        
+        if (customer) {
+          setSummary(prev => ({
+            ...prev,
+            totalCustomers: prev.totalCustomers - 1,
+            activeCustomers: customer.status === 'active' ? prev.activeCustomers - 1 : prev.activeCustomers,
+          }));
+        }
+      } else {
+        throw new Error(response.error || 'Failed to delete customer');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete customer');

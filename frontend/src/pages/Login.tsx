@@ -6,6 +6,8 @@ import Button from '../components/ui/Button';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +24,11 @@ function Login() {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password);
+        if (!firstName || !lastName) {
+          setError('First name and last name are required for signup');
+          return;
+        }
+        const { error } = await signUp(email, password, firstName, lastName);
         if (error) {
           setError(error.message);
         } else {
@@ -78,6 +84,42 @@ function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
+          {isSignUp && (
+            <>
+              <div className="form-group">
+                <label htmlFor="firstName" className="form-label">
+                  First Name
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="form-input"
+                  placeholder="Enter your first name"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="lastName" className="form-label">
+                  Last Name
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="form-input"
+                  placeholder="Enter your last name"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </>
+          )}
+
           <div className="form-group">
             <label htmlFor="email" className="form-label">
               Email Address

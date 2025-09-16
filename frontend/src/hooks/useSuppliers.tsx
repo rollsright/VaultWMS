@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Supplier, SupplierSummary, CreateSupplierRequest, UpdateSupplierRequest } from '../types/supplier';
+import { apiClient } from '../lib/api';
 
 // Mock data for development - will be replaced with API calls
 const mockSuppliers: Supplier[] = [
@@ -66,29 +67,46 @@ export function useSuppliers(customerId?: string) {
     }
   }, [customerId]);
 
-  const loadSuppliers = async (customerIdFilter: string) => {
+  const loadSuppliers = async (customerIdFilter?: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const [suppliersResponse, statsResponse] = await Promise.all([
+        customerIdFilter ? apiClient.getSuppliers({ customer_id: customerIdFilter }) : apiClient.getSuppliers(),
+        apiClient.getSupplierStats()
+      ]);
       
-      // Filter suppliers by customer ID
-      const filteredSuppliers = mockSuppliers.filter(s => s.customer_id === customerIdFilter);
+      if (suppliersResponse.success && suppliersResponse.data) {
+        setSuppliers(suppliersResponse.data);
+      } else {
+        throw new Error(suppliersResponse.error || 'Failed to fetch suppliers');
+      }
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/customers/${customerIdFilter}/suppliers`);
-      // setSuppliers(response.data);
-      
+      if (statsResponse.success && statsResponse.data) {
+        setSummary(statsResponse.data);
+      } else {
+        // Use fallback summary if stats fail
+        const filteredSuppliers = suppliersResponse.data || [];
+        setSummary({
+          totalSuppliers: filteredSuppliers.length,
+          activeSuppliers: filteredSuppliers.filter((s: any) => s.status === 'active').length,
+          thisMonth: 0,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load suppliers:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load suppliers');
+      // Fallback to mock data in case of error
+      const filteredSuppliers = customerIdFilter 
+        ? mockSuppliers.filter(s => s.customer_id === customerIdFilter)
+        : mockSuppliers;
       setSuppliers(filteredSuppliers);
       setSummary({
         totalSuppliers: filteredSuppliers.length,
         activeSuppliers: filteredSuppliers.filter(s => s.status === 'active').length,
         thisMonth: 0,
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load suppliers');
     } finally {
       setLoading(false);
     }
@@ -98,28 +116,21 @@ export function useSuppliers(customerId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/customers/${supplierData.customer_id}/suppliers`, {
-      //   method: 'POST',
-      //   body: JSON.stringify(supplierData),
-      // });
+      const response = await apiClient.createSupplier(supplierData);
       
-      const newSupplier: Supplier = {
-        id: Date.now().toString(),
-        ...supplierData,
-        status: supplierData.status || 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setSuppliers(prev => [...prev, newSupplier]);
-      setSummary(prev => ({
-        ...prev,
-        totalSuppliers: prev.totalSuppliers + 1,
-        activeSuppliers: supplierData.status !== 'inactive' ? prev.activeSuppliers + 1 : prev.activeSuppliers,
-      }));
-      
-      return newSupplier;
+      if (response.success && response.data) {
+        const newSupplier = response.data;
+        setSuppliers(prev => [...prev, newSupplier]);
+        setSummary(prev => ({
+          ...prev,
+          totalSuppliers: prev.totalSuppliers + 1,
+          activeSuppliers: newSupplier.status !== 'inactive' ? prev.activeSuppliers + 1 : prev.activeSuppliers,
+        }));
+        
+        return newSupplier;
+      } else {
+        throw new Error(response.error || 'Failed to create supplier');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create supplier');
       throw err;
@@ -130,21 +141,16 @@ export function useSuppliers(customerId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/suppliers/${id}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify(supplierData),
-      // });
+      const response = await apiClient.updateSupplier(id, supplierData);
       
-      const updatedSupplier: Supplier = {
-        ...suppliers.find(s => s.id === id)!,
-        ...supplierData,
-        updated_at: new Date().toISOString(),
-      };
-      
-      setSuppliers(prev => prev.map(s => s.id === id ? updatedSupplier : s));
-      
-      return updatedSupplier;
+      if (response.success && response.data) {
+        const updatedSupplier = response.data;
+        setSuppliers(prev => prev.map(s => s.id === id ? updatedSupplier : s));
+        
+        return updatedSupplier;
+      } else {
+        throw new Error(response.error || 'Failed to update supplier');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update supplier');
       throw err;
@@ -155,20 +161,21 @@ export function useSuppliers(customerId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // await apiClient.request(`/suppliers/${id}`, {
-      //   method: 'DELETE',
-      // });
-      
       const supplier = suppliers.find(s => s.id === id);
-      setSuppliers(prev => prev.filter(s => s.id !== id));
+      const response = await apiClient.deleteSupplier(id);
       
-      if (supplier) {
-        setSummary(prev => ({
-          ...prev,
-          totalSuppliers: prev.totalSuppliers - 1,
-          activeSuppliers: supplier.status === 'active' ? prev.activeSuppliers - 1 : prev.activeSuppliers,
-        }));
+      if (response.success) {
+        setSuppliers(prev => prev.filter(s => s.id !== id));
+        
+        if (supplier) {
+          setSummary(prev => ({
+            ...prev,
+            totalSuppliers: prev.totalSuppliers - 1,
+            activeSuppliers: supplier.status === 'active' ? prev.activeSuppliers - 1 : prev.activeSuppliers,
+          }));
+        }
+      } else {
+        throw new Error(response.error || 'Failed to delete supplier');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete supplier');
@@ -184,6 +191,6 @@ export function useSuppliers(customerId?: string) {
     createSupplier,
     updateSupplier,
     deleteSupplier,
-    refreshSuppliers: () => customerId && loadSuppliers(customerId),
+    refreshSuppliers: () => loadSuppliers(customerId),
   };
 }

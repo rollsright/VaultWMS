@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
 import { ApiResponse } from '../types';
+import sequelize from '../config/sequelize';
+import { QueryTypes } from 'sequelize';
 
 // Extend Request interface to include user
 declare global {
@@ -45,8 +47,45 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       } as ApiResponse);
     }
 
-    // Add user to request object
-    req.user = user;
+    // Look up the user in our database to get tenant_id
+    try {
+      const dbUser = await sequelize.query(
+        'SELECT id, tenant_id, email, first_name, last_name, role, is_active FROM users WHERE supabase_user_id = $1 AND is_active = true',
+        {
+          bind: [user.id],
+          type: QueryTypes.SELECT
+        }
+      ) as any[];
+
+      if (!dbUser || dbUser.length === 0) {
+        console.log('Auth middleware: User not found in database or inactive', { supabaseUserId: user.id });
+        return res.status(401).json({
+          success: false,
+          error: 'User not found or inactive'
+        } as ApiResponse);
+      }
+
+      // Combine Supabase user with database user info
+      req.user = {
+        ...user,
+        ...dbUser[0],
+        supabase_user_id: user.id
+      };
+      
+      console.log('Auth middleware: User authenticated successfully', { 
+        userId: req.user.id, 
+        tenantId: req.user.tenant_id,
+        email: req.user.email 
+      });
+      
+    } catch (dbError) {
+      console.error('Auth middleware: Database lookup error:', dbError);
+      return res.status(500).json({
+        success: false,
+        error: 'Authentication failed'
+      } as ApiResponse);
+    }
+
     next();
     return;
 

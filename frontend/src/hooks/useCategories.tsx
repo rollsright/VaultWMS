@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Category, CategorySummary, CreateCategoryRequest, UpdateCategoryRequest } from '../types/category';
+import { apiClient } from '../lib/api';
 
 // Mock data for development - will be replaced with API calls
 const mockCategories: Category[] = [
@@ -97,17 +98,33 @@ export function useCategories() {
       setLoading(true);
       setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const [categoriesResponse, statsResponse] = await Promise.all([
+        apiClient.getCategories(),
+        apiClient.getCategoryStats()
+      ]);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/categories');
-      // setCategories(response.data);
+      if (categoriesResponse.success && categoriesResponse.data) {
+        setCategories(categoriesResponse.data);
+      } else {
+        throw new Error(categoriesResponse.error || 'Failed to fetch categories');
+      }
       
+      if (statsResponse.success && statsResponse.data) {
+        setSummary(statsResponse.data);
+      } else {
+        // Use fallback summary if stats fail
+        setSummary({
+          totalCategories: categoriesResponse.data?.length || 0,
+          activeCategories: categoriesResponse.data?.filter((c: any) => c.status === 'active').length || 0,
+          inactiveCategories: categoriesResponse.data?.filter((c: any) => c.status === 'inactive').length || 0,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load categories');
+      // Fallback to mock data in case of error
       setCategories(mockCategories);
       setSummary(mockSummary);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load categories');
     } finally {
       setLoading(false);
     }
@@ -117,33 +134,24 @@ export function useCategories() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/categories', {
-      //   method: 'POST',
-      //   body: JSON.stringify(categoryData),
-      // });
+      const response = await apiClient.createCategory(categoryData);
       
-      const newCategory: Category = {
-        id: Date.now().toString(),
-        ...categoryData,
-        status: categoryData.status || 'active',
-        sort_order: categoryData.sort_order || 0,
-        is_active: categoryData.is_active ?? true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setCategories(prev => [...prev, newCategory]);
-      
-      // Update summary
-      setSummary(prev => ({
-        ...prev,
-        totalCategories: prev.totalCategories + 1,
-        activeCategories: newCategory.status === 'active' ? prev.activeCategories + 1 : prev.activeCategories,
-        inactiveCategories: newCategory.status === 'inactive' ? prev.inactiveCategories + 1 : prev.inactiveCategories,
-      }));
-      
-      return newCategory;
+      if (response.success && response.data) {
+        const newCategory = response.data;
+        setCategories(prev => [...prev, newCategory]);
+        
+        // Update summary
+        setSummary(prev => ({
+          ...prev,
+          totalCategories: prev.totalCategories + 1,
+          activeCategories: newCategory.status === 'active' ? prev.activeCategories + 1 : prev.activeCategories,
+          inactiveCategories: newCategory.status === 'inactive' ? prev.inactiveCategories + 1 : prev.inactiveCategories,
+        }));
+        
+        return newCategory;
+      } else {
+        throw new Error(response.error || 'Failed to create category');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create category');
       throw err;
@@ -154,37 +162,33 @@ export function useCategories() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/categories/${id}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify(categoryData),
-      // });
+      const response = await apiClient.updateCategory(id, categoryData);
       
-      const oldCategory = categories.find(c => c.id === id)!;
-      const updatedCategory: Category = {
-        ...oldCategory,
-        ...categoryData,
-        updated_at: new Date().toISOString(),
-      };
-      
-      setCategories(prev => prev.map(c => c.id === id ? updatedCategory : c));
-      
-      // Update summary if status changed
-      if (categoryData.status && categoryData.status !== oldCategory.status) {
-        setSummary(prev => {
-          const newSummary = { ...prev };
-          if (oldCategory.status === 'active' && categoryData.status === 'inactive') {
-            newSummary.activeCategories -= 1;
-            newSummary.inactiveCategories += 1;
-          } else if (oldCategory.status === 'inactive' && categoryData.status === 'active') {
-            newSummary.activeCategories += 1;
-            newSummary.inactiveCategories -= 1;
-          }
-          return newSummary;
-        });
+      if (response.success && response.data) {
+        const updatedCategory = response.data;
+        const oldCategory = categories.find(c => c.id === id);
+        
+        setCategories(prev => prev.map(c => c.id === id ? updatedCategory : c));
+        
+        // Update summary if status changed
+        if (oldCategory && updatedCategory.status !== oldCategory.status) {
+          setSummary(prev => {
+            const newSummary = { ...prev };
+            if (oldCategory.status === 'active' && updatedCategory.status === 'inactive') {
+              newSummary.activeCategories -= 1;
+              newSummary.inactiveCategories += 1;
+            } else if (oldCategory.status === 'inactive' && updatedCategory.status === 'active') {
+              newSummary.activeCategories += 1;
+              newSummary.inactiveCategories -= 1;
+            }
+            return newSummary;
+          });
+        }
+        
+        return updatedCategory;
+      } else {
+        throw new Error(response.error || 'Failed to update category');
       }
-      
-      return updatedCategory;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update category');
       throw err;
@@ -195,21 +199,22 @@ export function useCategories() {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // await apiClient.request(`/categories/${id}`, {
-      //   method: 'DELETE',
-      // });
-      
       const category = categories.find(c => c.id === id);
-      setCategories(prev => prev.filter(c => c.id !== id));
+      const response = await apiClient.deleteCategory(id);
       
-      if (category) {
-        setSummary(prev => ({
-          ...prev,
-          totalCategories: prev.totalCategories - 1,
-          activeCategories: category.status === 'active' ? prev.activeCategories - 1 : prev.activeCategories,
-          inactiveCategories: category.status === 'inactive' ? prev.inactiveCategories - 1 : prev.inactiveCategories,
-        }));
+      if (response.success) {
+        setCategories(prev => prev.filter(c => c.id !== id));
+        
+        if (category) {
+          setSummary(prev => ({
+            ...prev,
+            totalCategories: prev.totalCategories - 1,
+            activeCategories: category.status === 'active' ? prev.activeCategories - 1 : prev.activeCategories,
+            inactiveCategories: category.status === 'inactive' ? prev.inactiveCategories - 1 : prev.inactiveCategories,
+          }));
+        }
+      } else {
+        throw new Error(response.error || 'Failed to delete category');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete category');

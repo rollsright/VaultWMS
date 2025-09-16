@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, UserSummary, CreateUserRequest, UpdateUserRequest, UserType } from '../types/user';
+import { apiClient } from '../lib/api';
 
 // Mock data for development - will be replaced with API calls
 const mockUsers: User[] = [
@@ -148,25 +149,54 @@ export function useUsers(userType?: UserType) {
       setLoading(true);
       setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const params = typeFilter ? { user_type: typeFilter } : undefined;
+      const [usersResponse, statsResponse] = await Promise.all([
+        apiClient.getUsers(params),
+        apiClient.getUserStats()
+      ]);
       
-      // Filter users by type if specified
+      if (usersResponse.success && usersResponse.data) {
+        setUsers(usersResponse.data);
+        calculateSummary(usersResponse.data);
+      } else if (usersResponse.error?.includes('Tenant ID is required') || usersResponse.error?.includes('User not found or inactive')) {
+        // Attempt to bootstrap the user/tenant
+        console.log('Attempting to bootstrap user/tenant due to:', usersResponse.error);
+        try {
+          const bootstrapResponse = await apiClient.bootstrapUser();
+          if (bootstrapResponse.success) {
+            console.log('Bootstrap successful, retrying user load...');
+            // Retry loading users after bootstrap
+            const retryResponse = await apiClient.getUsers(params);
+            if (retryResponse.success && retryResponse.data) {
+              setUsers(retryResponse.data);
+              calculateSummary(retryResponse.data);
+            } else {
+              throw new Error(retryResponse.error || 'Failed to fetch users after bootstrap');
+            }
+          } else {
+            throw new Error(bootstrapResponse.error || 'Bootstrap failed');
+          }
+        } catch (bootstrapError) {
+          console.error('Bootstrap failed:', bootstrapError);
+          throw new Error('Failed to initialize user account. Please contact support.');
+        }
+      } else {
+        throw new Error(usersResponse.error || 'Failed to fetch users');
+      }
+      
+      if (statsResponse.success && statsResponse.data) {
+        setSummary(statsResponse.data);
+      }
+    } catch (err) {
+      console.error('Failed to load users:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load users');
+      // Fallback to mock data in case of error
       let filteredUsers = mockUsers;
       if (typeFilter) {
         filteredUsers = mockUsers.filter(user => user.user_type === typeFilter);
       }
-      
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/users', {
-      //   params: { user_type: typeFilter }
-      // });
-      // setUsers(response.data);
-      
       setUsers(filteredUsers);
       calculateSummary(filteredUsers);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -191,25 +221,17 @@ export function useUsers(userType?: UserType) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/users', {
-      //   method: 'POST',
-      //   body: JSON.stringify(userData),
-      // });
+      const response = await apiClient.createUser(userData);
       
-      const newUser: User = {
-        id: Date.now().toString(),
-        ...userData,
-        status: userData.status || 'active',
-        is_active: userData.is_active ?? true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setUsers(prev => [...prev, newUser]);
-      calculateSummary([...users, newUser]);
-      
-      return newUser;
+      if (response.success && response.data) {
+        const newUser = response.data;
+        setUsers(prev => [...prev, newUser]);
+        calculateSummary([...users, newUser]);
+        
+        return newUser;
+      } else {
+        throw new Error(response.error || 'Failed to create user');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create user');
       throw err;
@@ -220,24 +242,18 @@ export function useUsers(userType?: UserType) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/users/${id}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify(userData),
-      // });
+      const response = await apiClient.updateUser(id, userData);
       
-      const oldUser = users.find(user => user.id === id)!;
-      const updatedUser: User = {
-        ...oldUser,
-        ...userData,
-        updated_at: new Date().toISOString(),
-      };
-      
-      const updatedUsers = users.map(user => user.id === id ? updatedUser : user);
-      setUsers(updatedUsers);
-      calculateSummary(updatedUsers);
-      
-      return updatedUser;
+      if (response.success && response.data) {
+        const updatedUser = response.data;
+        const updatedUsers = users.map(user => user.id === id ? updatedUser : user);
+        setUsers(updatedUsers);
+        calculateSummary(updatedUsers);
+        
+        return updatedUser;
+      } else {
+        throw new Error(response.error || 'Failed to update user');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user');
       throw err;
@@ -248,14 +264,15 @@ export function useUsers(userType?: UserType) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // await apiClient.request(`/users/${id}`, {
-      //   method: 'DELETE',
-      // });
+      const response = await apiClient.deleteUser(id);
       
-      const updatedUsers = users.filter(user => user.id !== id);
-      setUsers(updatedUsers);
-      calculateSummary(updatedUsers);
+      if (response.success) {
+        const updatedUsers = users.filter(user => user.id !== id);
+        setUsers(updatedUsers);
+        calculateSummary(updatedUsers);
+      } else {
+        throw new Error(response.error || 'Failed to delete user');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete user');
       throw err;

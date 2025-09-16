@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Contact, ContactSummary, CreateContactRequest, UpdateContactRequest } from '../types/contact';
+import { apiClient } from '../lib/api';
 
 // Mock data for development - will be replaced with API calls
 const mockContacts: Contact[] = [
@@ -89,21 +90,41 @@ export function useContacts(customerId?: string) {
     }
   }, [customerId]);
 
-  const loadContacts = async (customerIdFilter: string) => {
+  const loadContacts = async (customerIdFilter?: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const [contactsResponse, statsResponse] = await Promise.all([
+        customerIdFilter ? apiClient.getContacts({ customer_id: customerIdFilter }) : apiClient.getContacts(),
+        apiClient.getContactStats()
+      ]);
       
-      // Filter contacts by customer ID
-      const filteredContacts = mockContacts.filter(contact => contact.customer_id === customerIdFilter);
+      if (contactsResponse.success && contactsResponse.data) {
+        setContacts(contactsResponse.data);
+      } else {
+        throw new Error(contactsResponse.error || 'Failed to fetch contacts');
+      }
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/customers/${customerIdFilter}/contacts`);
-      // setContacts(response.data);
-      
+      if (statsResponse.success && statsResponse.data) {
+        setSummary(statsResponse.data);
+      } else {
+        // Use fallback summary if stats fail
+        const filteredContacts = contactsResponse.data || [];
+        setSummary({
+          totalContacts: filteredContacts.length,
+          activeContacts: filteredContacts.filter((contact: any) => contact.status === 'active').length,
+          inactiveContacts: filteredContacts.filter((contact: any) => contact.status === 'inactive').length,
+          primaryContacts: filteredContacts.filter((contact: any) => contact.is_primary).length,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load contacts:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load contacts');
+      // Fallback to mock data in case of error
+      const filteredContacts = customerIdFilter 
+        ? mockContacts.filter(contact => contact.customer_id === customerIdFilter)
+        : mockContacts;
       setContacts(filteredContacts);
       setSummary({
         totalContacts: filteredContacts.length,
@@ -111,8 +132,6 @@ export function useContacts(customerId?: string) {
         inactiveContacts: filteredContacts.filter(contact => contact.status === 'inactive').length,
         primaryContacts: filteredContacts.filter(contact => contact.is_primary).length,
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load contacts');
     } finally {
       setLoading(false);
     }
@@ -122,32 +141,23 @@ export function useContacts(customerId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/customers/${contactData.customer_id}/contacts`, {
-      //   method: 'POST',
-      //   body: JSON.stringify(contactData),
-      // });
+      const response = await apiClient.createContact(contactData);
       
-      const newContact: Contact = {
-        id: Date.now().toString(),
-        ...contactData,
-        is_primary: contactData.is_primary || false,
-        status: contactData.status || 'active',
-        is_active: contactData.is_active ?? true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setContacts(prev => [...prev, newContact]);
-      setSummary(prev => ({
-        ...prev,
-        totalContacts: prev.totalContacts + 1,
-        activeContacts: contactData.status !== 'inactive' ? prev.activeContacts + 1 : prev.activeContacts,
-        inactiveContacts: contactData.status === 'inactive' ? prev.inactiveContacts + 1 : prev.inactiveContacts,
-        primaryContacts: contactData.is_primary ? prev.primaryContacts + 1 : prev.primaryContacts,
-      }));
-      
-      return newContact;
+      if (response.success && response.data) {
+        const newContact = response.data;
+        setContacts(prev => [...prev, newContact]);
+        setSummary(prev => ({
+          ...prev,
+          totalContacts: prev.totalContacts + 1,
+          activeContacts: newContact.status !== 'inactive' ? prev.activeContacts + 1 : prev.activeContacts,
+          inactiveContacts: newContact.status === 'inactive' ? prev.inactiveContacts + 1 : prev.inactiveContacts,
+          primaryContacts: newContact.is_primary ? prev.primaryContacts + 1 : prev.primaryContacts,
+        }));
+        
+        return newContact;
+      } else {
+        throw new Error(response.error || 'Failed to create contact');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create contact');
       throw err;
@@ -158,49 +168,47 @@ export function useContacts(customerId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request(`/contacts/${id}`, {
-      //   method: 'PUT',
-      //   body: JSON.stringify(contactData),
-      // });
+      const response = await apiClient.updateContact(id, contactData);
       
-      const oldContact = contacts.find(contact => contact.id === id)!;
-      const updatedContact: Contact = {
-        ...oldContact,
-        ...contactData,
-        updated_at: new Date().toISOString(),
-      };
-      
-      setContacts(prev => prev.map(contact => contact.id === id ? updatedContact : contact));
-      
-      // Update summary if relevant fields changed
-      setSummary(prev => {
-        let newSummary = { ...prev };
+      if (response.success && response.data) {
+        const updatedContact = response.data;
+        const oldContact = contacts.find(contact => contact.id === id);
         
-        // Update status counts
-        if (contactData.status && contactData.status !== oldContact.status) {
-          if (oldContact.status === 'active' && contactData.status === 'inactive') {
-            newSummary.activeContacts -= 1;
-            newSummary.inactiveContacts += 1;
-          } else if (oldContact.status === 'inactive' && contactData.status === 'active') {
-            newSummary.activeContacts += 1;
-            newSummary.inactiveContacts -= 1;
-          }
+        setContacts(prev => prev.map(contact => contact.id === id ? updatedContact : contact));
+        
+        // Update summary if relevant fields changed
+        if (oldContact) {
+          setSummary(prev => {
+            let newSummary = { ...prev };
+            
+            // Update status counts
+            if (updatedContact.status !== oldContact.status) {
+              if (oldContact.status === 'active' && updatedContact.status === 'inactive') {
+                newSummary.activeContacts -= 1;
+                newSummary.inactiveContacts += 1;
+              } else if (oldContact.status === 'inactive' && updatedContact.status === 'active') {
+                newSummary.activeContacts += 1;
+                newSummary.inactiveContacts -= 1;
+              }
+            }
+            
+            // Update primary contact count
+            if (updatedContact.is_primary !== oldContact.is_primary) {
+              if (updatedContact.is_primary) {
+                newSummary.primaryContacts += 1;
+              } else {
+                newSummary.primaryContacts -= 1;
+              }
+            }
+            
+            return newSummary;
+          });
         }
         
-        // Update primary contact count
-        if (contactData.is_primary !== undefined && contactData.is_primary !== oldContact.is_primary) {
-          if (contactData.is_primary) {
-            newSummary.primaryContacts += 1;
-          } else {
-            newSummary.primaryContacts -= 1;
-          }
-        }
-        
-        return newSummary;
-      });
-      
-      return updatedContact;
+        return updatedContact;
+      } else {
+        throw new Error(response.error || 'Failed to update contact');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update contact');
       throw err;
@@ -211,22 +219,23 @@ export function useContacts(customerId?: string) {
     try {
       setError(null);
       
-      // TODO: Replace with actual API call
-      // await apiClient.request(`/contacts/${id}`, {
-      //   method: 'DELETE',
-      // });
-      
       const contact = contacts.find(contact => contact.id === id);
-      setContacts(prev => prev.filter(contact => contact.id !== id));
+      const response = await apiClient.deleteContact(id);
       
-      if (contact) {
-        setSummary(prev => ({
-          ...prev,
-          totalContacts: prev.totalContacts - 1,
-          activeContacts: contact.status === 'active' ? prev.activeContacts - 1 : prev.activeContacts,
-          inactiveContacts: contact.status === 'inactive' ? prev.inactiveContacts - 1 : prev.inactiveContacts,
-          primaryContacts: contact.is_primary ? prev.primaryContacts - 1 : prev.primaryContacts,
-        }));
+      if (response.success) {
+        setContacts(prev => prev.filter(contact => contact.id !== id));
+        
+        if (contact) {
+          setSummary(prev => ({
+            ...prev,
+            totalContacts: prev.totalContacts - 1,
+            activeContacts: contact.status === 'active' ? prev.activeContacts - 1 : prev.activeContacts,
+            inactiveContacts: contact.status === 'inactive' ? prev.inactiveContacts - 1 : prev.inactiveContacts,
+            primaryContacts: contact.is_primary ? prev.primaryContacts - 1 : prev.primaryContacts,
+          }));
+        }
+      } else {
+        throw new Error(response.error || 'Failed to delete contact');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete contact');
@@ -242,6 +251,6 @@ export function useContacts(customerId?: string) {
     createContact,
     updateContact,
     deleteContact,
-    refreshContacts: () => customerId && loadContacts(customerId),
+    refreshContacts: () => loadContacts(customerId),
   };
 }

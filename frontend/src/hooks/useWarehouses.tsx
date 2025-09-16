@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Warehouse } from '../types/door';
+import { apiClient } from '../lib/api';
 
 // Mock data for development - will be replaced with API calls
 const mockWarehouses: Warehouse[] = [
@@ -54,16 +55,18 @@ export function useWarehouses() {
       setLoading(true);
       setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 300));
+      const response = await apiClient.getWarehouses();
       
-      // TODO: Replace with actual API call
-      // const response = await apiClient.request('/warehouses');
-      // setWarehouses(response.data);
-      
-      setWarehouses(mockWarehouses);
+      if (response.success && response.data) {
+        setWarehouses(response.data);
+      } else {
+        throw new Error(response.error || 'Failed to fetch warehouses');
+      }
     } catch (err) {
+      console.error('Failed to load warehouses:', err);
       setError(err instanceof Error ? err.message : 'Failed to load warehouses');
+      // Fallback to mock data in case of error
+      setWarehouses(mockWarehouses);
     } finally {
       setLoading(false);
     }
