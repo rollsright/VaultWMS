@@ -134,7 +134,6 @@ Root table representing companies/organizations using the WMS. This is the found
 #### One-to-Many Relationships (Tenant owns)
 - `users` (employees of the tenant)
 - `customers` (customers of the tenant)
-- `uoms` (units of measure for the tenant)
 - `warehouses` (warehouses owned by the tenant)
 - `carriers` (shipping carriers used by the tenant)
 - `suppliers` (suppliers for the tenant)
