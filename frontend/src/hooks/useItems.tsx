@@ -39,8 +39,8 @@ export function ItemProvider({ children }: ItemProviderProps) {
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
       try {
-        console.log('Items fetch: Making request to', `${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items`)
-        const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items`, {
+        console.log('Items fetch: Making request to', `${(import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3002'}/api/items`)
+        const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3002'}/api/items`, {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -100,7 +100,7 @@ export function ItemProvider({ children }: ItemProviderProps) {
     setError(null)
     
     try {
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3002'}/api/items`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +140,7 @@ export function ItemProvider({ children }: ItemProviderProps) {
     setError(null)
     
     try {
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items/${id}`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3002'}/api/items/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ export function ItemProvider({ children }: ItemProviderProps) {
     setError(null)
     
     try {
-      const response = await fetch(`${(import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'}/api/items/${id}`, {
+      const response = await fetch(`${(import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3002'}/api/items/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

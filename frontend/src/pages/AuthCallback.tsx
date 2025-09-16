@@ -13,9 +13,32 @@ function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the authorization code and provider from URL parameters
-        const code = searchParams.get('code');
+        // Check if we have tokens in URL fragment (Supabase direct response)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
         const provider = searchParams.get('provider') as 'google' | 'azure';
+        
+        if (accessToken && refreshToken && provider) {
+          // Direct token response from Supabase - store tokens and create session
+          localStorage.setItem('access_token', accessToken);
+          localStorage.setItem('refresh_token', refreshToken);
+          
+          // Get user profile using the access token
+          const userResponse = await apiClient.getCurrentUser();
+          if (userResponse.success && userResponse.data?.user) {
+            updateAuthState(userResponse.data.user, {
+              access_token: accessToken,
+              refresh_token: refreshToken,
+              user: userResponse.data.user
+            });
+            navigate('/', { replace: true });
+            return;
+          }
+        }
+        
+        // Fallback to original code-based flow
+        const code = searchParams.get('code');
         
         if (!code || !provider) {
           setError('Missing authorization code or provider. Please try again.');
