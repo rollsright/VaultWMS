@@ -183,6 +183,36 @@ class ApiClient {
 
     return response;
   }
+
+  // User management endpoints
+  async getUsers(params?: { user_type?: string }): Promise<ApiResponse<any[]>> {
+    const queryParams = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return this.request<any[]>(`/users${queryParams}`);
+  }
+
+  async getUserStats(): Promise<ApiResponse<any>> {
+    return this.request<any>('/users/stats');
+  }
+
+  async createUser(userData: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/users', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async updateUser(id: string, userData: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async deleteUser(id: string): Promise<ApiResponse> {
+    return this.request(`/users/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

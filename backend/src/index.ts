@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import authRoutes from './routes/auth';
 import itemsRoutes from './routes/items';
+import usersRoutes from './routes/users';
 import './config/sequelize'; // Initialize database connection
 
 const app = express();
@@ -97,6 +98,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemsRoutes);
+app.use('/api/users', usersRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
