@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import crypto from 'crypto';
 import { supabaseAdmin } from '../config/supabase';
 import { ApiResponse } from '../types';
 
@@ -205,6 +206,7 @@ router.post('/', async (req: Request, res: Response) => {
     const { data: user, error } = await supabaseAdmin
       .from('users')
       .insert({
+        id: crypto.randomUUID(),
         tenant_id: tenantId,
         email,
         first_name,
